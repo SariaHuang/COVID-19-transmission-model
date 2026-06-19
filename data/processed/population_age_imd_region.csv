@@ -1,0 +1,1293 @@
+"age_band","lad_imd_decile","itl1_name","population"
+"0-4",1,"East",6295
+"0-4",1,"East Midlands (England)",52565
+"0-4",1,"London",46201
+"0-4",1,"North East (England)",27382
+"0-4",1,"North West (England)",227255
+"0-4",1,"South East (England)",6214
+"0-4",1,"West Midlands (England)",187878
+"0-4",1,"Yorkshire and The Humber",76913
+"0-4",2,"East",35503
+"0-4",2,"East Midlands (England)",21392
+"0-4",2,"London",119744
+"0-4",2,"North East (England)",89308
+"0-4",2,"North West (England)",79067
+"0-4",2,"South East (England)",38485
+"0-4",2,"South West (England)",7880
+"0-4",2,"Yorkshire and The Humber",179733
+"0-4",3,"East",47481
+"0-4",3,"East Midlands (England)",39228
+"0-4",3,"London",152392
+"0-4",3,"North East (England)",20477
+"0-4",3,"North West (England)",39469
+"0-4",3,"South East (England)",42701
+"0-4",3,"South West (England)",83545
+"0-4",3,"West Midlands (England)",40186
+"0-4",3,"Yorkshire and The Humber",52036
+"0-4",4,"East",40766
+"0-4",4,"East Midlands (England)",12606
+"0-4",4,"London",107494
+"0-4",4,"North East (England)",31123
+"0-4",4,"North West (England)",31990
+"0-4",4,"South East (England)",43397
+"0-4",4,"South West (England)",20741
+"0-4",4,"West Midlands (England)",51083
+"0-4",4,"Yorkshire and The Humber",10677
+"0-4",5,"East",58836
+"0-4",5,"East Midlands (England)",45614
+"0-4",5,"London",33898
+"0-4",5,"North West (England)",41053
+"0-4",5,"South East (England)",85707
+"0-4",5,"South West (England)",31588
+"0-4",5,"West Midlands (England)",38482
+"0-4",6,"East",26377
+"0-4",6,"East Midlands (England)",49893
+"0-4",6,"London",98737
+"0-4",6,"North West (England)",32084
+"0-4",6,"South East (England)",64339
+"0-4",6,"South West (England)",61516
+"0-4",6,"West Midlands (England)",40611
+"0-4",7,"East",54132
+"0-4",7,"East Midlands (England)",33398
+"0-4",7,"London",89516
+"0-4",7,"North West (England)",27938
+"0-4",7,"South East (England)",32263
+"0-4",7,"South West (England)",47393
+"0-4",7,"West Midlands (England)",12754
+"0-4",7,"Yorkshire and The Humber",21491
+"0-4",8,"East",58233
+"0-4",8,"East Midlands (England)",34091
+"0-4",8,"London",41211
+"0-4",8,"North West (England)",24466
+"0-4",8,"South East (England)",55705
+"0-4",8,"South West (England)",44248
+"0-4",8,"West Midlands (England)",28551
+"0-4",8,"Yorkshire and The Humber",12086
+"0-4",9,"East",61599
+"0-4",9,"East Midlands (England)",17147
+"0-4",9,"London",13140
+"0-4",9,"North West (England)",8101
+"0-4",9,"South East (England)",54700
+"0-4",9,"South West (England)",49869
+"0-4",9,"West Midlands (England)",23219
+"0-4",9,"Yorkshire and The Humber",25288
+"0-4",10,"East",50740
+"0-4",10,"East Midlands (England)",15130
+"0-4",10,"London",14454
+"0-4",10,"South East (England)",199832
+"5-9",1,"East",5793
+"5-9",1,"East Midlands (England)",44759
+"5-9",1,"London",37127
+"5-9",1,"North East (England)",24545
+"5-9",1,"North West (England)",193090
+"5-9",1,"South East (England)",5675
+"5-9",1,"West Midlands (England)",162795
+"5-9",1,"Yorkshire and The Humber",68597
+"5-9",2,"East",32036
+"5-9",2,"East Midlands (England)",19341
+"5-9",2,"London",96332
+"5-9",2,"North East (England)",84044
+"5-9",2,"North West (England)",72071
+"5-9",2,"South East (England)",34511
+"5-9",2,"South West (England)",7707
+"5-9",2,"Yorkshire and The Humber",157901
+"5-9",3,"East",41143
+"5-9",3,"East Midlands (England)",36311
+"5-9",3,"London",123781
+"5-9",3,"North East (England)",19760
+"5-9",3,"North West (England)",36849
+"5-9",3,"South East (England)",38512
+"5-9",3,"South West (England)",76630
+"5-9",3,"West Midlands (England)",36974
+"5-9",3,"Yorkshire and The Humber",48539
+"5-9",4,"East",35990
+"5-9",4,"East Midlands (England)",11751
+"5-9",4,"London",91048
+"5-9",4,"North East (England)",29202
+"5-9",4,"North West (England)",30142
+"5-9",4,"South East (England)",40352
+"5-9",4,"South West (England)",19733
+"5-9",4,"West Midlands (England)",45979
+"5-9",4,"Yorkshire and The Humber",10489
+"5-9",5,"East",53154
+"5-9",5,"East Midlands (England)",43560
+"5-9",5,"London",32094
+"5-9",5,"North West (England)",38348
+"5-9",5,"South East (England)",77095
+"5-9",5,"South West (England)",29776
+"5-9",5,"West Midlands (England)",36053
+"5-9",6,"East",23924
+"5-9",6,"East Midlands (England)",45808
+"5-9",6,"London",79742
+"5-9",6,"North West (England)",30296
+"5-9",6,"South East (England)",60559
+"5-9",6,"South West (England)",58522
+"5-9",6,"West Midlands (England)",39417
+"5-9",7,"East",48155
+"5-9",7,"East Midlands (England)",31213
+"5-9",7,"London",76449
+"5-9",7,"North West (England)",27765
+"5-9",7,"South East (England)",27998
+"5-9",7,"South West (England)",46811
+"5-9",7,"West Midlands (England)",12530
+"5-9",7,"Yorkshire and The Humber",21402
+"5-9",8,"East",54448
+"5-9",8,"East Midlands (England)",32384
+"5-9",8,"London",36928
+"5-9",8,"North West (England)",22434
+"5-9",8,"South East (England)",54295
+"5-9",8,"South West (England)",44176
+"5-9",8,"West Midlands (England)",26405
+"5-9",8,"Yorkshire and The Humber",11274
+"5-9",9,"East",57066
+"5-9",9,"East Midlands (England)",16757
+"5-9",9,"London",12014
+"5-9",9,"North West (England)",8255
+"5-9",9,"South East (England)",51015
+"5-9",9,"South West (England)",46321
+"5-9",9,"West Midlands (England)",21237
+"5-9",9,"Yorkshire and The Humber",25087
+"5-9",10,"East",48488
+"5-9",10,"East Midlands (England)",15003
+"5-9",10,"London",14026
+"5-9",10,"South East (England)",195562
+"10-14",1,"East",5548
+"10-14",1,"East Midlands (England)",41165
+"10-14",1,"London",33194
+"10-14",1,"North East (England)",23104
+"10-14",1,"North West (England)",178969
+"10-14",1,"South East (England)",5295
+"10-14",1,"West Midlands (England)",153371
+"10-14",1,"Yorkshire and The Humber",65455
+"10-14",2,"East",28255
+"10-14",2,"East Midlands (England)",18069
+"10-14",2,"London",84300
+"10-14",2,"North East (England)",79768
+"10-14",2,"North West (England)",68408
+"10-14",2,"South East (England)",31641
+"10-14",2,"South West (England)",7161
+"10-14",2,"Yorkshire and The Humber",148785
+"10-14",3,"East",36745
+"10-14",3,"East Midlands (England)",34500
+"10-14",3,"London",110466
+"10-14",3,"North East (England)",19295
+"10-14",3,"North West (England)",36027
+"10-14",3,"South East (England)",35957
+"10-14",3,"South West (England)",70727
+"10-14",3,"West Midlands (England)",33376
+"10-14",3,"Yorkshire and The Humber",47148
+"10-14",4,"East",33312
+"10-14",4,"East Midlands (England)",10585
+"10-14",4,"London",81836
+"10-14",4,"North East (England)",29402
+"10-14",4,"North West (England)",29691
+"10-14",4,"South East (England)",38838
+"10-14",4,"South West (England)",18468
+"10-14",4,"West Midlands (England)",43919
+"10-14",4,"Yorkshire and The Humber",10702
+"10-14",5,"East",50721
+"10-14",5,"East Midlands (England)",41676
+"10-14",5,"London",28153
+"10-14",5,"North West (England)",37183
+"10-14",5,"South East (England)",72956
+"10-14",5,"South West (England)",27903
+"10-14",5,"West Midlands (England)",35118
+"10-14",6,"East",22257
+"10-14",6,"East Midlands (England)",43123
+"10-14",6,"London",70817
+"10-14",6,"North West (England)",29449
+"10-14",6,"South East (England)",57472
+"10-14",6,"South West (England)",57578
+"10-14",6,"West Midlands (England)",39928
+"10-14",7,"East",45399
+"10-14",7,"East Midlands (England)",31011
+"10-14",7,"London",70032
+"10-14",7,"North West (England)",27697
+"10-14",7,"South East (England)",26909
+"10-14",7,"South West (England)",47140
+"10-14",7,"West Midlands (England)",12699
+"10-14",7,"Yorkshire and The Humber",21867
+"10-14",8,"East",52440
+"10-14",8,"East Midlands (England)",31423
+"10-14",8,"London",34192
+"10-14",8,"North West (England)",22639
+"10-14",8,"South East (England)",53230
+"10-14",8,"South West (England)",43645
+"10-14",8,"West Midlands (England)",26766
+"10-14",8,"Yorkshire and The Humber",11078
+"10-14",9,"East",54893
+"10-14",9,"East Midlands (England)",16693
+"10-14",9,"London",11023
+"10-14",9,"North West (England)",9454
+"10-14",9,"South East (England)",49937
+"10-14",9,"South West (England)",45156
+"10-14",9,"West Midlands (England)",21255
+"10-14",9,"Yorkshire and The Humber",25374
+"10-14",10,"East",48229
+"10-14",10,"East Midlands (England)",16122
+"10-14",10,"London",12866
+"10-14",10,"South East (England)",193263
+"15-19",1,"East",5012
+"15-19",1,"East Midlands (England)",68361
+"15-19",1,"London",26389
+"15-19",1,"North East (England)",21040
+"15-19",1,"North West (England)",187269
+"15-19",1,"South East (England)",4575
+"15-19",1,"West Midlands (England)",150291
+"15-19",1,"Yorkshire and The Humber",57881
+"15-19",2,"East",29547
+"15-19",2,"East Midlands (England)",22561
+"15-19",2,"London",81103
+"15-19",2,"North East (England)",92146
+"15-19",2,"North West (England)",59963
+"15-19",2,"South East (England)",35061
+"15-19",2,"South West (England)",6065
+"15-19",2,"Yorkshire and The Humber",157926
+"15-19",3,"East",31043
+"15-19",3,"East Midlands (England)",31801
+"15-19",3,"London",94384
+"15-19",3,"North East (England)",15221
+"15-19",3,"North West (England)",35739
+"15-19",3,"South East (England)",38705
+"15-19",3,"South West (England)",78894
+"15-19",3,"West Midlands (England)",38990
+"15-19",3,"Yorkshire and The Humber",41491
+"15-19",4,"East",26910
+"15-19",4,"East Midlands (England)",8812
+"15-19",4,"London",67661
+"15-19",4,"North East (England)",24816
+"15-19",4,"North West (England)",24837
+"15-19",4,"South East (England)",31868
+"15-19",4,"South West (England)",16414
+"15-19",4,"West Midlands (England)",38680
+"15-19",4,"Yorkshire and The Humber",8443
+"15-19",5,"East",41147
+"15-19",5,"East Midlands (England)",33856
+"15-19",5,"London",31316
+"15-19",5,"North West (England)",32931
+"15-19",5,"South East (England)",71173
+"15-19",5,"South West (England)",22752
+"15-19",5,"West Midlands (England)",32471
+"15-19",6,"East",22448
+"15-19",6,"East Midlands (England)",36487
+"15-19",6,"London",61750
+"15-19",6,"North West (England)",25074
+"15-19",6,"South East (England)",61390
+"15-19",6,"South West (England)",62352
+"15-19",6,"West Midlands (England)",33723
+"15-19",7,"East",43561
+"15-19",7,"East Midlands (England)",26617
+"15-19",7,"London",55747
+"15-19",7,"North West (England)",21084
+"15-19",7,"South East (England)",21886
+"15-19",7,"South West (England)",40472
+"15-19",7,"West Midlands (England)",10507
+"15-19",7,"Yorkshire and The Humber",18336
+"15-19",8,"East",44505
+"15-19",8,"East Midlands (England)",34178
+"15-19",8,"London",25608
+"15-19",8,"North West (England)",17985
+"15-19",8,"South East (England)",43174
+"15-19",8,"South West (England)",35296
+"15-19",8,"West Midlands (England)",22286
+"15-19",8,"Yorkshire and The Humber",9914
+"15-19",9,"East",43394
+"15-19",9,"East Midlands (England)",13389
+"15-19",9,"London",9652
+"15-19",9,"North West (England)",8301
+"15-19",9,"South East (England)",41218
+"15-19",9,"South West (England)",47016
+"15-19",9,"West Midlands (England)",20271
+"15-19",9,"Yorkshire and The Humber",30482
+"15-19",10,"East",36092
+"15-19",10,"East Midlands (England)",13285
+"15-19",10,"London",9087
+"15-19",10,"South East (England)",159158
+"20-24",1,"East",5398
+"20-24",1,"East Midlands (England)",78009
+"20-24",1,"London",32126
+"20-24",1,"North East (England)",24683
+"20-24",1,"North West (England)",235835
+"20-24",1,"South East (England)",4933
+"20-24",1,"West Midlands (England)",173158
+"20-24",1,"Yorkshire and The Humber",61131
+"20-24",2,"East",33710
+"20-24",2,"East Midlands (England)",22875
+"20-24",2,"London",128184
+"20-24",2,"North East (England)",109214
+"20-24",2,"North West (England)",65157
+"20-24",2,"South East (England)",45064
+"20-24",2,"South West (England)",6147
+"20-24",2,"Yorkshire and The Humber",199366
+"20-24",3,"East",32811
+"20-24",3,"East Midlands (England)",35502
+"20-24",3,"London",129523
+"20-24",3,"North East (England)",15667
+"20-24",3,"North West (England)",38623
+"20-24",3,"South East (England)",43511
+"20-24",3,"South West (England)",101911
+"20-24",3,"West Midlands (England)",52464
+"20-24",3,"Yorkshire and The Humber",42752
+"20-24",4,"East",28787
+"20-24",4,"East Midlands (England)",9912
+"20-24",4,"London",84446
+"20-24",4,"North East (England)",25372
+"20-24",4,"North West (England)",25940
+"20-24",4,"South East (England)",33183
+"20-24",4,"South West (England)",16800
+"20-24",4,"West Midlands (England)",41895
+"20-24",4,"Yorkshire and The Humber",8494
+"20-24",5,"East",41723
+"20-24",5,"East Midlands (England)",34234
+"20-24",5,"London",46742
+"20-24",5,"North West (England)",32386
+"20-24",5,"South East (England)",85758
+"20-24",5,"South West (England)",23136
+"20-24",5,"West Midlands (England)",35104
+"20-24",6,"East",25272
+"20-24",6,"East Midlands (England)",38412
+"20-24",6,"London",79840
+"20-24",6,"North West (England)",27514
+"20-24",6,"South East (England)",70348
+"20-24",6,"South West (England)",63156
+"20-24",6,"West Midlands (England)",33636
+"20-24",7,"East",52443
+"20-24",7,"East Midlands (England)",29233
+"20-24",7,"London",64533
+"20-24",7,"North West (England)",20200
+"20-24",7,"South East (England)",22050
+"20-24",7,"South West (England)",38283
+"20-24",7,"West Midlands (England)",10768
+"20-24",7,"Yorkshire and The Humber",17137
+"20-24",8,"East",48117
+"20-24",8,"East Midlands (England)",33891
+"20-24",8,"London",25656
+"20-24",8,"North West (England)",17527
+"20-24",8,"South East (England)",41813
+"20-24",8,"South West (England)",32500
+"20-24",8,"West Midlands (England)",23924
+"20-24",8,"Yorkshire and The Humber",9210
+"20-24",9,"East",45153
+"20-24",9,"East Midlands (England)",14030
+"20-24",9,"London",12062
+"20-24",9,"North West (England)",7598
+"20-24",9,"South East (England)",39688
+"20-24",9,"South West (England)",50704
+"20-24",9,"West Midlands (England)",22923
+"20-24",9,"Yorkshire and The Humber",30782
+"20-24",10,"East",33883
+"20-24",10,"East Midlands (England)",12712
+"20-24",10,"London",8671
+"20-24",10,"South East (England)",149143
+"25-29",1,"East",5304
+"25-29",1,"East Midlands (England)",64926
+"25-29",1,"London",46411
+"25-29",1,"North East (England)",26940
+"25-29",1,"North West (England)",246725
+"25-29",1,"South East (England)",5408
+"25-29",1,"West Midlands (England)",176104
+"25-29",1,"Yorkshire and The Humber",65993
+"25-29",2,"East",34051
+"25-29",2,"East Midlands (England)",21555
+"25-29",2,"London",163320
+"25-29",2,"North East (England)",106030
+"25-29",2,"North West (England)",70046
+"25-29",2,"South East (England)",41835
+"25-29",2,"South West (England)",6752
+"25-29",2,"Yorkshire and The Humber",197324
+"25-29",3,"East",38561
+"25-29",3,"East Midlands (England)",38787
+"25-29",3,"London",174430
+"25-29",3,"North East (England)",19598
+"25-29",3,"North West (England)",39993
+"25-29",3,"South East (England)",44666
+"25-29",3,"South West (England)",97106
+"25-29",3,"West Midlands (England)",50520
+"25-29",3,"Yorkshire and The Humber",46576
+"25-29",4,"East",32730
+"25-29",4,"East Midlands (England)",11169
+"25-29",4,"London",98485
+"25-29",4,"North East (England)",28609
+"25-29",4,"North West (England)",30021
+"25-29",4,"South East (England)",34901
+"25-29",4,"South West (England)",17868
+"25-29",4,"West Midlands (England)",47327
+"25-29",4,"Yorkshire and The Humber",9967
+"25-29",5,"East",47144
+"25-29",5,"East Midlands (England)",39458
+"25-29",5,"London",57249
+"25-29",5,"North West (England)",37123
+"25-29",5,"South East (England)",87982
+"25-29",5,"South West (England)",26214
+"25-29",5,"West Midlands (England)",39325
+"25-29",6,"East",26291
+"25-29",6,"East Midlands (England)",42589
+"25-29",6,"London",103858
+"25-29",6,"North West (England)",29264
+"25-29",6,"South East (England)",63495
+"25-29",6,"South West (England)",60339
+"25-29",6,"West Midlands (England)",37044
+"25-29",7,"East",50134
+"25-29",7,"East Midlands (England)",33724
+"25-29",7,"London",79104
+"25-29",7,"North West (England)",22862
+"25-29",7,"South East (England)",24898
+"25-29",7,"South West (England)",41066
+"25-29",7,"West Midlands (England)",11242
+"25-29",7,"Yorkshire and The Humber",18202
+"25-29",8,"East",50291
+"25-29",8,"East Midlands (England)",32706
+"25-29",8,"London",30679
+"25-29",8,"North West (England)",19735
+"25-29",8,"South East (England)",44098
+"25-29",8,"South West (England)",36417
+"25-29",8,"West Midlands (England)",27303
+"25-29",8,"Yorkshire and The Humber",11616
+"25-29",9,"East",52056
+"25-29",9,"East Midlands (England)",15921
+"25-29",9,"London",12725
+"25-29",9,"North West (England)",7464
+"25-29",9,"South East (England)",42545
+"25-29",9,"South West (England)",49299
+"25-29",9,"West Midlands (England)",23800
+"25-29",9,"Yorkshire and The Humber",28343
+"25-29",10,"East",37303
+"25-29",10,"East Midlands (England)",13883
+"25-29",10,"London",9699
+"25-29",10,"South East (England)",153818
+"30-34",1,"East",5665
+"30-34",1,"East Midlands (England)",47053
+"30-34",1,"London",54684
+"30-34",1,"North East (England)",26009
+"30-34",1,"North West (England)",224422
+"30-34",1,"South East (England)",5764
+"30-34",1,"West Midlands (England)",162561
+"30-34",1,"Yorkshire and The Humber",67435
+"30-34",2,"East",33172
+"30-34",2,"East Midlands (England)",20239
+"30-34",2,"London",165166
+"30-34",2,"North East (England)",92780
+"30-34",2,"North West (England)",70779
+"30-34",2,"South East (England)",35016
+"30-34",2,"South West (England)",7090
+"30-34",2,"Yorkshire and The Humber",172844
+"30-34",3,"East",43018
+"30-34",3,"East Midlands (England)",38063
+"30-34",3,"London",184119
+"30-34",3,"North East (England)",20014
+"30-34",3,"North West (England)",38042
+"30-34",3,"South East (England)",41499
+"30-34",3,"South West (England)",86120
+"30-34",3,"West Midlands (England)",43115
+"30-34",3,"Yorkshire and The Humber",46563
+"30-34",4,"East",36366
+"30-34",4,"East Midlands (England)",11447
+"30-34",4,"London",108371
+"30-34",4,"North East (England)",31272
+"30-34",4,"North West (England)",29621
+"30-34",4,"South East (England)",37352
+"30-34",4,"South West (England)",19297
+"30-34",4,"West Midlands (England)",47130
+"30-34",4,"Yorkshire and The Humber",10704
+"30-34",5,"East",52098
+"30-34",5,"East Midlands (England)",42095
+"30-34",5,"London",53489
+"30-34",5,"North West (England)",38230
+"30-34",5,"South East (England)",83789
+"30-34",5,"South West (England)",29000
+"30-34",5,"West Midlands (England)",38680
+"30-34",6,"East",24927
+"30-34",6,"East Midlands (England)",44843
+"30-34",6,"London",106758
+"30-34",6,"North West (England)",30018
+"30-34",6,"South East (England)",56574
+"30-34",6,"South West (England)",59788
+"30-34",6,"West Midlands (England)",37892
+"30-34",7,"East",49394
+"30-34",7,"East Midlands (England)",33752
+"30-34",7,"London",86949
+"30-34",7,"North West (England)",25837
+"30-34",7,"South East (England)",29302
+"30-34",7,"South West (England)",44432
+"30-34",7,"West Midlands (England)",11895
+"30-34",7,"Yorkshire and The Humber",19347
+"30-34",8,"East",54158
+"30-34",8,"East Midlands (England)",31742
+"30-34",8,"London",37102
+"30-34",8,"North West (England)",20677
+"30-34",8,"South East (England)",47371
+"30-34",8,"South West (England)",40588
+"30-34",8,"West Midlands (England)",27582
+"30-34",8,"Yorkshire and The Humber",12183
+"30-34",9,"East",58919
+"30-34",9,"East Midlands (England)",16883
+"30-34",9,"London",14007
+"30-34",9,"North West (England)",7522
+"30-34",9,"South East (England)",46423
+"30-34",9,"South West (England)",47490
+"30-34",9,"West Midlands (England)",20548
+"30-34",9,"Yorkshire and The Humber",26163
+"30-34",10,"East",42755
+"30-34",10,"East Midlands (England)",13938
+"30-34",10,"London",12312
+"30-34",10,"South East (England)",171399
+"35-39",1,"East",5456
+"35-39",1,"East Midlands (England)",43493
+"35-39",1,"London",46900
+"35-39",1,"North East (England)",23095
+"35-39",1,"North West (England)",199385
+"35-39",1,"South East (England)",5588
+"35-39",1,"West Midlands (England)",151637
+"35-39",1,"Yorkshire and The Humber",63789
+"35-39",2,"East",31370
+"35-39",2,"East Midlands (England)",19446
+"35-39",2,"London",139732
+"35-39",2,"North East (England)",86370
+"35-39",2,"North West (England)",68211
+"35-39",2,"South East (England)",33869
+"35-39",2,"South West (England)",6809
+"35-39",2,"Yorkshire and The Humber",162019
+"35-39",3,"East",40888
+"35-39",3,"East Midlands (England)",35684
+"35-39",3,"London",160682
+"35-39",3,"North East (England)",19646
+"35-39",3,"North West (England)",37296
+"35-39",3,"South East (England)",38882
+"35-39",3,"South West (England)",79916
+"35-39",3,"West Midlands (England)",36167
+"35-39",3,"Yorkshire and The Humber",47162
+"35-39",4,"East",36463
+"35-39",4,"East Midlands (England)",11358
+"35-39",4,"London",107957
+"35-39",4,"North East (England)",32116
+"35-39",4,"North West (England)",30184
+"35-39",4,"South East (England)",40411
+"35-39",4,"South West (England)",18921
+"35-39",4,"West Midlands (England)",46591
+"35-39",4,"Yorkshire and The Humber",10454
+"35-39",5,"East",52275
+"35-39",5,"East Midlands (England)",42200
+"35-39",5,"London",46838
+"35-39",5,"North West (England)",38869
+"35-39",5,"South East (England)",83853
+"35-39",5,"South West (England)",29742
+"35-39",5,"West Midlands (England)",37984
+"35-39",6,"East",24465
+"35-39",6,"East Midlands (England)",46031
+"35-39",6,"London",101098
+"35-39",6,"North West (England)",30478
+"35-39",6,"South East (England)",61602
+"35-39",6,"South West (England)",61005
+"35-39",6,"West Midlands (England)",38219
+"35-39",7,"East",49299
+"35-39",7,"East Midlands (England)",33750
+"35-39",7,"London",88424
+"35-39",7,"North West (England)",28237
+"35-39",7,"South East (England)",31034
+"35-39",7,"South West (England)",46161
+"35-39",7,"West Midlands (England)",12188
+"35-39",7,"Yorkshire and The Humber",20518
+"35-39",8,"East",56191
+"35-39",8,"East Midlands (England)",32840
+"35-39",8,"London",42881
+"35-39",8,"North West (England)",22395
+"35-39",8,"South East (England)",51399
+"35-39",8,"South West (England)",41833
+"35-39",8,"West Midlands (England)",27734
+"35-39",8,"Yorkshire and The Humber",11779
+"35-39",9,"East",60947
+"35-39",9,"East Midlands (England)",17042
+"35-39",9,"London",14728
+"35-39",9,"North West (England)",8333
+"35-39",9,"South East (England)",51275
+"35-39",9,"South West (England)",47308
+"35-39",9,"West Midlands (England)",21781
+"35-39",9,"Yorkshire and The Humber",26055
+"35-39",10,"East",48980
+"35-39",10,"East Midlands (England)",15213
+"35-39",10,"London",15984
+"35-39",10,"South East (England)",192222
+"40-44",1,"East",4891
+"40-44",1,"East Midlands (England)",37034
+"40-44",1,"London",35717
+"40-44",1,"North East (England)",20272
+"40-44",1,"North West (England)",166511
+"40-44",1,"South East (England)",5290
+"40-44",1,"West Midlands (England)",132060
+"40-44",1,"Yorkshire and The Humber",56144
+"40-44",2,"East",27291
+"40-44",2,"East Midlands (England)",17197
+"40-44",2,"London",108371
+"40-44",2,"North East (England)",76374
+"40-44",2,"North West (England)",62719
+"40-44",2,"South East (England)",29915
+"40-44",2,"South West (England)",6604
+"40-44",2,"Yorkshire and The Humber",141549
+"40-44",3,"East",35352
+"40-44",3,"East Midlands (England)",32526
+"40-44",3,"London",131880
+"40-44",3,"North East (England)",17605
+"40-44",3,"North West (England)",34240
+"40-44",3,"South East (England)",34898
+"40-44",3,"South West (England)",70317
+"40-44",3,"West Midlands (England)",30824
+"40-44",3,"Yorkshire and The Humber",44622
+"40-44",4,"East",34103
+"40-44",4,"East Midlands (England)",10559
+"40-44",4,"London",100055
+"40-44",4,"North East (England)",30571
+"40-44",4,"North West (England)",27558
+"40-44",4,"South East (England)",37618
+"40-44",4,"South West (England)",17544
+"40-44",4,"West Midlands (England)",42460
+"40-44",4,"Yorkshire and The Humber",9436
+"40-44",5,"East",49402
+"40-44",5,"East Midlands (England)",40031
+"40-44",5,"London",38636
+"40-44",5,"North West (England)",36947
+"40-44",5,"South East (England)",77047
+"40-44",5,"South West (England)",27855
+"40-44",5,"West Midlands (England)",34176
+"40-44",6,"East",22904
+"40-44",6,"East Midlands (England)",43611
+"40-44",6,"London",84881
+"40-44",6,"North West (England)",29650
+"40-44",6,"South East (England)",57544
+"40-44",6,"South West (England)",57600
+"40-44",6,"West Midlands (England)",37807
+"40-44",7,"East",45838
+"40-44",7,"East Midlands (England)",32117
+"40-44",7,"London",80379
+"40-44",7,"North West (England)",27486
+"40-44",7,"South East (England)",29164
+"40-44",7,"South West (England)",46054
+"40-44",7,"West Midlands (England)",12205
+"40-44",7,"Yorkshire and The Humber",21418
+"40-44",8,"East",54022
+"40-44",8,"East Midlands (England)",30891
+"40-44",8,"London",41347
+"40-44",8,"North West (England)",22586
+"40-44",8,"South East (England)",52567
+"40-44",8,"South West (England)",41076
+"40-44",8,"West Midlands (England)",26922
+"40-44",8,"Yorkshire and The Humber",10806
+"40-44",9,"East",59130
+"40-44",9,"East Midlands (England)",16261
+"40-44",9,"London",13701
+"40-44",9,"North West (England)",8607
+"40-44",9,"South East (England)",53334
+"40-44",9,"South West (England)",45531
+"40-44",9,"West Midlands (England)",21842
+"40-44",9,"Yorkshire and The Humber",25513
+"40-44",10,"East",51891
+"40-44",10,"East Midlands (England)",15951
+"40-44",10,"London",16910
+"40-44",10,"South East (England)",199974
+"45-49",1,"East",5972
+"45-49",1,"East Midlands (England)",36696
+"45-49",1,"London",30411
+"45-49",1,"North East (England)",23568
+"45-49",1,"North West (England)",180075
+"45-49",1,"South East (England)",6245
+"45-49",1,"West Midlands (England)",139320
+"45-49",1,"Yorkshire and The Humber",61123
+"45-49",2,"East",29370
+"45-49",2,"East Midlands (England)",21071
+"45-49",2,"London",92633
+"45-49",2,"North East (England)",89091
+"45-49",2,"North West (England)",72762
+"45-49",2,"South East (England)",32048
+"45-49",2,"South West (England)",8703
+"45-49",2,"Yorkshire and The Humber",161290
+"45-49",3,"East",37616
+"45-49",3,"East Midlands (England)",38148
+"45-49",3,"London",120054
+"45-49",3,"North East (England)",20193
+"45-49",3,"North West (England)",41649
+"45-49",3,"South East (England)",38523
+"45-49",3,"South West (England)",78006
+"45-49",3,"West Midlands (England)",32670
+"45-49",3,"Yorkshire and The Humber",52033
+"45-49",4,"East",37031
+"45-49",4,"East Midlands (England)",12509
+"45-49",4,"London",93025
+"45-49",4,"North East (England)",35223
+"45-49",4,"North West (England)",33781
+"45-49",4,"South East (England)",41012
+"45-49",4,"South West (England)",20972
+"45-49",4,"West Midlands (England)",49617
+"45-49",4,"Yorkshire and The Humber",11266
+"45-49",5,"East",54492
+"45-49",5,"East Midlands (England)",47445
+"45-49",5,"London",35314
+"45-49",5,"North West (England)",42551
+"45-49",5,"South East (England)",82976
+"45-49",5,"South West (England)",32771
+"45-49",5,"West Midlands (England)",41379
+"45-49",6,"East",24759
+"45-49",6,"East Midlands (England)",51265
+"45-49",6,"London",76343
+"45-49",6,"North West (England)",35906
+"45-49",6,"South East (England)",59795
+"45-49",6,"South West (England)",66806
+"45-49",6,"West Midlands (England)",46313
+"45-49",7,"East",50896
+"45-49",7,"East Midlands (England)",38298
+"45-49",7,"London",75057
+"45-49",7,"North West (England)",30329
+"45-49",7,"South East (England)",31534
+"45-49",7,"South West (England)",54711
+"45-49",7,"West Midlands (England)",16105
+"45-49",7,"Yorkshire and The Humber",27240
+"45-49",8,"East",59931
+"45-49",8,"East Midlands (England)",37111
+"45-49",8,"London",39609
+"45-49",8,"North West (England)",27785
+"45-49",8,"South East (England)",61350
+"45-49",8,"South West (England)",50570
+"45-49",8,"West Midlands (England)",32403
+"45-49",8,"Yorkshire and The Humber",13909
+"45-49",9,"East",64861
+"45-49",9,"East Midlands (England)",20135
+"45-49",9,"London",13040
+"45-49",9,"North West (England)",11549
+"45-49",9,"South East (England)",57480
+"45-49",9,"South West (England)",52862
+"45-49",9,"West Midlands (England)",25836
+"45-49",9,"Yorkshire and The Humber",30293
+"45-49",10,"East",54460
+"45-49",10,"East Midlands (England)",18397
+"45-49",10,"London",16530
+"45-49",10,"South East (England)",218141
+"50-54",1,"East",7080
+"50-54",1,"East Midlands (England)",36479
+"50-54",1,"London",27246
+"50-54",1,"North East (England)",26564
+"50-54",1,"North West (England)",191110
+"50-54",1,"South East (England)",7099
+"50-54",1,"West Midlands (England)",139304
+"50-54",1,"Yorkshire and The Humber",61203
+"50-54",2,"East",31288
+"50-54",2,"East Midlands (England)",24223
+"50-54",2,"London",84408
+"50-54",2,"North East (England)",99238
+"50-54",2,"North West (England)",78261
+"50-54",2,"South East (England)",34411
+"50-54",2,"South West (England)",10085
+"50-54",2,"Yorkshire and The Humber",170482
+"50-54",3,"East",39598
+"50-54",3,"East Midlands (England)",41420
+"50-54",3,"London",116662
+"50-54",3,"North East (England)",21817
+"50-54",3,"North West (England)",46085
+"50-54",3,"South East (England)",40794
+"50-54",3,"South West (England)",83951
+"50-54",3,"West Midlands (England)",33038
+"50-54",3,"Yorkshire and The Humber",54676
+"50-54",4,"East",39355
+"50-54",4,"East Midlands (England)",13945
+"50-54",4,"London",89771
+"50-54",4,"North East (England)",39404
+"50-54",4,"North West (England)",37941
+"50-54",4,"South East (England)",45125
+"50-54",4,"South West (England)",23875
+"50-54",4,"West Midlands (England)",53211
+"50-54",4,"Yorkshire and The Humber",12915
+"50-54",5,"East",59217
+"50-54",5,"East Midlands (England)",52064
+"50-54",5,"London",32801
+"50-54",5,"North West (England)",45645
+"50-54",5,"South East (England)",87353
+"50-54",5,"South West (England)",35062
+"50-54",5,"West Midlands (England)",46005
+"50-54",6,"East",26707
+"50-54",6,"East Midlands (England)",54757
+"50-54",6,"London",73155
+"50-54",6,"North West (England)",38994
+"50-54",6,"South East (England)",61578
+"50-54",6,"South West (England)",73898
+"50-54",6,"West Midlands (England)",52559
+"50-54",7,"East",54291
+"50-54",7,"East Midlands (England)",41405
+"50-54",7,"London",73382
+"50-54",7,"North West (England)",31559
+"50-54",7,"South East (England)",33389
+"50-54",7,"South West (England)",61880
+"50-54",7,"West Midlands (England)",18182
+"50-54",7,"Yorkshire and The Humber",31105
+"50-54",8,"East",63631
+"50-54",8,"East Midlands (England)",40200
+"50-54",8,"London",39260
+"50-54",8,"North West (England)",30394
+"50-54",8,"South East (England)",67485
+"50-54",8,"South West (England)",55709
+"50-54",8,"West Midlands (England)",35190
+"50-54",8,"Yorkshire and The Humber",15668
+"50-54",9,"East",67618
+"50-54",9,"East Midlands (England)",22830
+"50-54",9,"London",11547
+"50-54",9,"North West (England)",13337
+"50-54",9,"South East (England)",59423
+"50-54",9,"South West (England)",57347
+"50-54",9,"West Midlands (England)",27595
+"50-54",9,"Yorkshire and The Humber",33660
+"50-54",10,"East",55155
+"50-54",10,"East Midlands (England)",19825
+"50-54",10,"London",14708
+"50-54",10,"South East (England)",223111
+"55-59",1,"East",7080
+"55-59",1,"East Midlands (England)",34422
+"55-59",1,"London",22479
+"55-59",1,"North East (England)",27070
+"55-59",1,"North West (England)",179692
+"55-59",1,"South East (England)",6708
+"55-59",1,"West Midlands (England)",126970
+"55-59",1,"Yorkshire and The Humber",59104
+"55-59",2,"East",29567
+"55-59",2,"East Midlands (England)",25176
+"55-59",2,"London",70289
+"55-59",2,"North East (England)",98543
+"55-59",2,"North West (England)",77469
+"55-59",2,"South East (England)",33066
+"55-59",2,"South West (England)",10369
+"55-59",2,"Yorkshire and The Humber",158593
+"55-59",3,"East",38013
+"55-59",3,"East Midlands (England)",37582
+"55-59",3,"London",102256
+"55-59",3,"North East (England)",21324
+"55-59",3,"North West (England)",42792
+"55-59",3,"South East (England)",38286
+"55-59",3,"South West (England)",81401
+"55-59",3,"West Midlands (England)",29994
+"55-59",3,"Yorkshire and The Humber",51869
+"55-59",4,"East",37766
+"55-59",4,"East Midlands (England)",13571
+"55-59",4,"London",79364
+"55-59",4,"North East (England)",41033
+"55-59",4,"North West (England)",37077
+"55-59",4,"South East (England)",43290
+"55-59",4,"South West (England)",23423
+"55-59",4,"West Midlands (England)",48427
+"55-59",4,"Yorkshire and The Humber",12791
+"55-59",5,"East",55926
+"55-59",5,"East Midlands (England)",48496
+"55-59",5,"London",27162
+"55-59",5,"North West (England)",43006
+"55-59",5,"South East (England)",79177
+"55-59",5,"South West (England)",34069
+"55-59",5,"West Midlands (England)",43466
+"55-59",6,"East",24074
+"55-59",6,"East Midlands (England)",51154
+"55-59",6,"London",65221
+"55-59",6,"North West (England)",38015
+"55-59",6,"South East (England)",56213
+"55-59",6,"South West (England)",71413
+"55-59",6,"West Midlands (England)",51333
+"55-59",7,"East",49665
+"55-59",7,"East Midlands (England)",38569
+"55-59",7,"London",66028
+"55-59",7,"North West (England)",30299
+"55-59",7,"South East (England)",30862
+"55-59",7,"South West (England)",62953
+"55-59",7,"West Midlands (England)",17594
+"55-59",7,"Yorkshire and The Humber",31684
+"55-59",8,"East",60113
+"55-59",8,"East Midlands (England)",38389
+"55-59",8,"London",34064
+"55-59",8,"North West (England)",29181
+"55-59",8,"South East (England)",64825
+"55-59",8,"South West (England)",54374
+"55-59",8,"West Midlands (England)",33518
+"55-59",8,"Yorkshire and The Humber",15676
+"55-59",9,"East",62216
+"55-59",9,"East Midlands (England)",21896
+"55-59",9,"London",9803
+"55-59",9,"North West (England)",13642
+"55-59",9,"South East (England)",55151
+"55-59",9,"South West (England)",54038
+"55-59",9,"West Midlands (England)",26023
+"55-59",9,"Yorkshire and The Humber",32781
+"55-59",10,"East",49539
+"55-59",10,"East Midlands (England)",18494
+"55-59",10,"London",12779
+"55-59",10,"South East (England)",205708
+"60-64",1,"East",6440
+"60-64",1,"East Midlands (England)",28864
+"60-64",1,"London",17079
+"60-64",1,"North East (England)",24006
+"60-64",1,"North West (England)",151274
+"60-64",1,"South East (England)",5680
+"60-64",1,"West Midlands (England)",104231
+"60-64",1,"Yorkshire and The Humber",50502
+"60-64",2,"East",26081
+"60-64",2,"East Midlands (England)",22699
+"60-64",2,"London",53187
+"60-64",2,"North East (England)",88041
+"60-64",2,"North West (England)",66747
+"60-64",2,"South East (England)",28654
+"60-64",2,"South West (England)",9566
+"60-64",2,"Yorkshire and The Humber",135298
+"60-64",3,"East",32809
+"60-64",3,"East Midlands (England)",31266
+"60-64",3,"London",78351
+"60-64",3,"North East (England)",18430
+"60-64",3,"North West (England)",36155
+"60-64",3,"South East (England)",31757
+"60-64",3,"South West (England)",72815
+"60-64",3,"West Midlands (England)",24928
+"60-64",3,"Yorkshire and The Humber",44699
+"60-64",4,"East",32680
+"60-64",4,"East Midlands (England)",11915
+"60-64",4,"London",63153
+"60-64",4,"North East (England)",37519
+"60-64",4,"North West (England)",32142
+"60-64",4,"South East (England)",39440
+"60-64",4,"South West (England)",20532
+"60-64",4,"West Midlands (England)",41396
+"60-64",4,"Yorkshire and The Humber",11238
+"60-64",5,"East",48507
+"60-64",5,"East Midlands (England)",40896
+"60-64",5,"London",22334
+"60-64",5,"North West (England)",36037
+"60-64",5,"South East (England)",65751
+"60-64",5,"South West (England)",29461
+"60-64",5,"West Midlands (England)",38238
+"60-64",6,"East",20104
+"60-64",6,"East Midlands (England)",43621
+"60-64",6,"London",52509
+"60-64",6,"North West (England)",32259
+"60-64",6,"South East (England)",48155
+"60-64",6,"South West (England)",62716
+"60-64",6,"West Midlands (England)",44039
+"60-64",7,"East",41747
+"60-64",7,"East Midlands (England)",32249
+"60-64",7,"London",54085
+"60-64",7,"North West (England)",25204
+"60-64",7,"South East (England)",25215
+"60-64",7,"South West (England)",56854
+"60-64",7,"West Midlands (England)",15483
+"60-64",7,"Yorkshire and The Humber",28742
+"60-64",8,"East",51405
+"60-64",8,"East Midlands (England)",32911
+"60-64",8,"London",26700
+"60-64",8,"North West (England)",24269
+"60-64",8,"South East (England)",56412
+"60-64",8,"South West (England)",48274
+"60-64",8,"West Midlands (England)",27921
+"60-64",8,"Yorkshire and The Humber",13669
+"60-64",9,"East",52326
+"60-64",9,"East Midlands (England)",18360
+"60-64",9,"London",8046
+"60-64",9,"North West (England)",12268
+"60-64",9,"South East (England)",44947
+"60-64",9,"South West (England)",45219
+"60-64",9,"West Midlands (England)",21961
+"60-64",9,"Yorkshire and The Humber",28010
+"60-64",10,"East",39454
+"60-64",10,"East Midlands (England)",15400
+"60-64",10,"London",9955
+"60-64",10,"South East (England)",168707
+"65-69",1,"East",6338
+"65-69",1,"East Midlands (England)",24329
+"65-69",1,"London",12588
+"65-69",1,"North East (England)",20262
+"65-69",1,"North West (England)",129891
+"65-69",1,"South East (England)",5192
+"65-69",1,"West Midlands (England)",90022
+"65-69",1,"Yorkshire and The Humber",43383
+"65-69",2,"East",24735
+"65-69",2,"East Midlands (England)",21769
+"65-69",2,"London",39594
+"65-69",2,"North East (England)",76918
+"65-69",2,"North West (England)",60164
+"65-69",2,"South East (England)",26012
+"65-69",2,"South West (England)",9172
+"65-69",2,"Yorkshire and The Humber",119362
+"65-69",3,"East",29950
+"65-69",3,"East Midlands (England)",28221
+"65-69",3,"London",58456
+"65-69",3,"North East (England)",16156
+"65-69",3,"North West (England)",33174
+"65-69",3,"South East (England)",27552
+"65-69",3,"South West (England)",66965
+"65-69",3,"West Midlands (England)",22192
+"65-69",3,"Yorkshire and The Humber",40712
+"65-69",4,"East",29839
+"65-69",4,"East Midlands (England)",11031
+"65-69",4,"London",51625
+"65-69",4,"North East (England)",34338
+"65-69",4,"North West (England)",30152
+"65-69",4,"South East (England)",36188
+"65-69",4,"South West (England)",19079
+"65-69",4,"West Midlands (England)",39611
+"65-69",4,"Yorkshire and The Humber",10331
+"65-69",5,"East",45028
+"65-69",5,"East Midlands (England)",38017
+"65-69",5,"London",18846
+"65-69",5,"North West (England)",32080
+"65-69",5,"South East (England)",58519
+"65-69",5,"South West (England)",27129
+"65-69",5,"West Midlands (England)",35496
+"65-69",6,"East",18680
+"65-69",6,"East Midlands (England)",40288
+"65-69",6,"London",42930
+"65-69",6,"North West (England)",30275
+"65-69",6,"South East (England)",43632
+"65-69",6,"South West (England)",60919
+"65-69",6,"West Midlands (England)",41684
+"65-69",7,"East",38232
+"65-69",7,"East Midlands (England)",30177
+"65-69",7,"London",44663
+"65-69",7,"North West (England)",22602
+"65-69",7,"South East (England)",22223
+"65-69",7,"South West (England)",56017
+"65-69",7,"West Midlands (England)",15285
+"65-69",7,"Yorkshire and The Humber",27901
+"65-69",8,"East",46044
+"65-69",8,"East Midlands (England)",31264
+"65-69",8,"London",22614
+"65-69",8,"North West (England)",22681
+"65-69",8,"South East (England)",52565
+"65-69",8,"South West (England)",46081
+"65-69",8,"West Midlands (England)",26368
+"65-69",8,"Yorkshire and The Humber",12534
+"65-69",9,"East",47570
+"65-69",9,"East Midlands (England)",17698
+"65-69",9,"London",6804
+"65-69",9,"North West (England)",11253
+"65-69",9,"South East (England)",39401
+"65-69",9,"South West (England)",42157
+"65-69",9,"West Midlands (England)",20714
+"65-69",9,"Yorkshire and The Humber",25556
+"65-69",10,"East",34517
+"65-69",10,"East Midlands (England)",14673
+"65-69",10,"London",8676
+"65-69",10,"South East (England)",148120
+"70-74",1,"East",6635
+"70-74",1,"East Midlands (England)",19707
+"70-74",1,"London",9923
+"70-74",1,"North East (England)",18542
+"70-74",1,"North West (England)",120406
+"70-74",1,"South East (England)",5250
+"70-74",1,"West Midlands (England)",81240
+"70-74",1,"Yorkshire and The Humber",39403
+"70-74",2,"East",25242
+"70-74",2,"East Midlands (England)",21501
+"70-74",2,"London",30611
+"70-74",2,"North East (England)",74491
+"70-74",2,"North West (England)",57747
+"70-74",2,"South East (England)",26157
+"70-74",2,"South West (England)",9948
+"70-74",2,"Yorkshire and The Humber",116899
+"70-74",3,"East",29116
+"70-74",3,"East Midlands (England)",27399
+"70-74",3,"London",48408
+"70-74",3,"North East (England)",15356
+"70-74",3,"North West (England)",33510
+"70-74",3,"South East (England)",28442
+"70-74",3,"South West (England)",68091
+"70-74",3,"West Midlands (England)",20940
+"70-74",3,"Yorkshire and The Humber",40126
+"70-74",4,"East",30527
+"70-74",4,"East Midlands (England)",11033
+"70-74",4,"London",43687
+"70-74",4,"North East (England)",33272
+"70-74",4,"North West (England)",30420
+"70-74",4,"South East (England)",37271
+"70-74",4,"South West (England)",18799
+"70-74",4,"West Midlands (England)",39323
+"70-74",4,"Yorkshire and The Humber",9803
+"70-74",5,"East",46358
+"70-74",5,"East Midlands (England)",38622
+"70-74",5,"London",16770
+"70-74",5,"North West (England)",32517
+"70-74",5,"South East (England)",60483
+"70-74",5,"South West (England)",26591
+"70-74",5,"West Midlands (England)",35036
+"70-74",6,"East",20404
+"70-74",6,"East Midlands (England)",41251
+"70-74",6,"London",38979
+"70-74",6,"North West (England)",30522
+"70-74",6,"South East (England)",43607
+"70-74",6,"South West (England)",62035
+"70-74",6,"West Midlands (England)",43024
+"70-74",7,"East",39281
+"70-74",7,"East Midlands (England)",30036
+"70-74",7,"London",40691
+"70-74",7,"North West (England)",22841
+"70-74",7,"South East (England)",22654
+"70-74",7,"South West (England)",59459
+"70-74",7,"West Midlands (England)",15727
+"70-74",7,"Yorkshire and The Humber",28822
+"70-74",8,"East",47477
+"70-74",8,"East Midlands (England)",31210
+"70-74",8,"London",23179
+"70-74",8,"North West (England)",23702
+"70-74",8,"South East (England)",56228
+"70-74",8,"South West (England)",47862
+"70-74",8,"West Midlands (England)",27938
+"70-74",8,"Yorkshire and The Humber",12480
+"70-74",9,"East",49913
+"70-74",9,"East Midlands (England)",18482
+"70-74",9,"London",6331
+"70-74",9,"North West (England)",12089
+"70-74",9,"South East (England)",41177
+"70-74",9,"South West (England)",42515
+"70-74",9,"West Midlands (England)",21688
+"70-74",9,"Yorkshire and The Humber",26794
+"70-74",10,"East",35240
+"70-74",10,"East Midlands (England)",15099
+"70-74",10,"London",8323
+"70-74",10,"South East (England)",153262
+"75-79",1,"East",4575
+"75-79",1,"East Midlands (England)",13341
+"75-79",1,"London",6701
+"75-79",1,"North East (England)",12094
+"75-79",1,"North West (England)",81021
+"75-79",1,"South East (England)",3135
+"75-79",1,"West Midlands (England)",61753
+"75-79",1,"Yorkshire and The Humber",25917
+"75-79",2,"East",17341
+"75-79",2,"East Midlands (England)",14394
+"75-79",2,"London",21013
+"75-79",2,"North East (England)",49433
+"75-79",2,"North West (England)",40734
+"75-79",2,"South East (England)",17342
+"75-79",2,"South West (England)",6886
+"75-79",2,"Yorkshire and The Humber",80487
+"75-79",3,"East",20090
+"75-79",3,"East Midlands (England)",19640
+"75-79",3,"London",34311
+"75-79",3,"North East (England)",10161
+"75-79",3,"North West (England)",22522
+"75-79",3,"South East (England)",18367
+"75-79",3,"South West (England)",45379
+"75-79",3,"West Midlands (England)",15244
+"75-79",3,"Yorkshire and The Humber",26428
+"75-79",4,"East",20597
+"75-79",4,"East Midlands (England)",7554
+"75-79",4,"London",30542
+"75-79",4,"North East (England)",21385
+"75-79",4,"North West (England)",21264
+"75-79",4,"South East (England)",24934
+"75-79",4,"South West (England)",12904
+"75-79",4,"West Midlands (England)",28252
+"75-79",4,"Yorkshire and The Humber",6558
+"75-79",5,"East",30874
+"75-79",5,"East Midlands (England)",25434
+"75-79",5,"London",11249
+"75-79",5,"North West (England)",23084
+"75-79",5,"South East (England)",41135
+"75-79",5,"South West (England)",18300
+"75-79",5,"West Midlands (England)",24509
+"75-79",6,"East",13685
+"75-79",6,"East Midlands (England)",27086
+"75-79",6,"London",27369
+"75-79",6,"North West (England)",20616
+"75-79",6,"South East (England)",29335
+"75-79",6,"South West (England)",42590
+"75-79",6,"West Midlands (England)",30544
+"75-79",7,"East",26708
+"75-79",7,"East Midlands (England)",19827
+"75-79",7,"London",28788
+"75-79",7,"North West (England)",15911
+"75-79",7,"South East (England)",15858
+"75-79",7,"South West (England)",40856
+"75-79",7,"West Midlands (England)",10832
+"75-79",7,"Yorkshire and The Humber",18894
+"75-79",8,"East",32039
+"75-79",8,"East Midlands (England)",21265
+"75-79",8,"London",15843
+"75-79",8,"North West (England)",16433
+"75-79",8,"South East (England)",39051
+"75-79",8,"South West (England)",32997
+"75-79",8,"West Midlands (England)",20870
+"75-79",8,"Yorkshire and The Humber",8269
+"75-79",9,"East",33419
+"75-79",9,"East Midlands (England)",12937
+"75-79",9,"London",4271
+"75-79",9,"North West (England)",8144
+"75-79",9,"South East (England)",28514
+"75-79",9,"South West (England)",30585
+"75-79",9,"West Midlands (England)",15567
+"75-79",9,"Yorkshire and The Humber",18169
+"75-79",10,"East",23937
+"75-79",10,"East Midlands (England)",10285
+"75-79",10,"London",5520
+"75-79",10,"South East (England)",108017
+"80+",1,"East",5716
+"80+",1,"East Midlands (England)",19931
+"80+",1,"London",9872
+"80+",1,"North East (England)",17078
+"80+",1,"North West (England)",103306
+"80+",1,"South East (England)",4503
+"80+",1,"West Midlands (England)",84617
+"80+",1,"Yorkshire and The Humber",36645
+"80+",2,"East",23597
+"80+",2,"East Midlands (England)",17922
+"80+",2,"London",29029
+"80+",2,"North East (England)",65208
+"80+",2,"North West (England)",54470
+"80+",2,"South East (England)",22258
+"80+",2,"South West (England)",9274
+"80+",2,"Yorkshire and The Humber",105574
+"80+",3,"East",28598
+"80+",3,"East Midlands (England)",25308
+"80+",3,"London",48989
+"80+",3,"North East (England)",14101
+"80+",3,"North West (England)",26139
+"80+",3,"South East (England)",24102
+"80+",3,"South West (England)",60230
+"80+",3,"West Midlands (England)",19087
+"80+",3,"Yorkshire and The Humber",34034
+"80+",4,"East",29556
+"80+",4,"East Midlands (England)",9360
+"80+",4,"London",42559
+"80+",4,"North East (England)",28034
+"80+",4,"North West (England)",27369
+"80+",4,"South East (England)",34870
+"80+",4,"South West (England)",16504
+"80+",4,"West Midlands (England)",34807
+"80+",4,"Yorkshire and The Humber",8480
+"80+",5,"East",43048
+"80+",5,"East Midlands (England)",31395
+"80+",5,"London",16473
+"80+",5,"North West (England)",30100
+"80+",5,"South East (England)",58272
+"80+",5,"South West (England)",25123
+"80+",5,"West Midlands (England)",30974
+"80+",6,"East",18038
+"80+",6,"East Midlands (England)",33416
+"80+",6,"London",41071
+"80+",6,"North West (England)",26033
+"80+",6,"South East (England)",40957
+"80+",6,"South West (England)",59609
+"80+",6,"West Midlands (England)",40026
+"80+",7,"East",37814
+"80+",7,"East Midlands (England)",24448
+"80+",7,"London",44210
+"80+",7,"North West (England)",22025
+"80+",7,"South East (England)",22392
+"80+",7,"South West (England)",55905
+"80+",7,"West Midlands (England)",13515
+"80+",7,"Yorkshire and The Humber",24724
+"80+",8,"East",44085
+"80+",8,"East Midlands (England)",27518
+"80+",8,"London",23586
+"80+",8,"North West (England)",21778
+"80+",8,"South East (England)",54040
+"80+",8,"South West (England)",44450
+"80+",8,"West Midlands (England)",24833
+"80+",8,"Yorkshire and The Humber",10616
+"80+",9,"East",45758
+"80+",9,"East Midlands (England)",16060
+"80+",9,"London",6248
+"80+",9,"North West (England)",11014
+"80+",9,"South East (England)",41832
+"80+",9,"South West (England)",40773
+"80+",9,"West Midlands (England)",21620
+"80+",9,"Yorkshire and The Humber",26139
+"80+",10,"East",35311
+"80+",10,"East Midlands (England)",14019
+"80+",10,"London",7641
+"80+",10,"South East (England)",153805

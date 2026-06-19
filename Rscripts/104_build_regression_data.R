@@ -1,0 +1,185 @@
+# ==============================================================
+# Script: 04_build_regression_data.R
+#
+# Purpose: Build the final LAD-by-week regression dataset by
+#          combining NHS hospital admissions, LAD-level IMD
+#          deprivation/geography, OxCGRT government policy
+#          stringency data, and ONS mid-year population
+#          estimates.
+#
+# Inputs:
+#   - NHS admissions data (pulled via covid19.nhs.data::get_admissions())
+#   - data/processed/LAD21_geography_IMD_summary.csv (output of script 03)
+#   - OxCGRT policy data (pulled directly from GitHub)
+#   - data/raw/ukpopestimatesmid2020on2021geography.xls (ONS population estimates)
+#
+# Output:
+#   - data/processed/regression_data.rds
+#
+# Note: `release_date` below is still TBD — update once the final
+#       NHS data release date for this analysis is decided.
+# ==============================================================
+
+library(covid19.nhs.data)
+library(dplyr)
+library(lubridate)
+library(readxl)
+
+release_date <- as.Date("2022-03-03")  # TODO: confirm final release date
+
+# ------------------------------------------------------------
+# 1. Download NHS hospital admissions data
+# ------------------------------------------------------------
+adm_full <- get_admissions(
+  keep_vars    = "new_adm",
+  level        = "ltla",
+  release_date = release_date
+)
+
+# ------------------------------------------------------------
+# 2. Read LAD-level geography + IMD table (output of script 03)
+# ------------------------------------------------------------
+lad_imd <- read.csv("data/processed/LAD21_geography_IMD_summary.csv")
+
+# Check for duplicate lad_codes (caused by LAD boundary changes
+# after April 2021 — Buckinghamshire and Northamptonshire
+# reorganisations — not yet reflected in some NHS geo_code values)
+lad_imd %>%
+  group_by(lad_code) %>%
+  filter(n() > 1) %>%
+  select(lad_code, lad_name) %>%
+  distinct()
+
+# ------------------------------------------------------------
+# 3. Recode old LAD codes to new LAD21 codes before merging
+# ------------------------------------------------------------
+lad_recode <- tibble::tribble(
+  ~old_code,    ~new_code,
+  # Buckinghamshire (4 old districts -> 1 unitary authority)
+  "E07000004",  "E06000060",
+  "E07000005",  "E06000060",
+  "E07000006",  "E06000060",
+  "E07000007",  "E06000060",
+  # Northamptonshire (7 old districts -> North/West Northamptonshire)
+  "E07000150",  "E06000061",   # Corby -> North
+  "E07000152",  "E06000061",   # East Northamptonshire -> North
+  "E07000153",  "E06000061",   # Kettering -> North
+  "E07000156",  "E06000061",   # Wellingborough -> North
+  "E07000151",  "E06000062",   # Daventry -> West
+  "E07000154",  "E06000062",   # Northampton -> West
+  "E07000155",  "E06000062"    # South Northamptonshire -> West
+)
+
+adm_imd <- adm_full %>%
+  filter(!is.na(geo_code)) %>%
+  left_join(lad_recode, by = c("geo_code" = "old_code")) %>%
+  mutate(geo_code = coalesce(new_code, geo_code)) %>%
+  select(-new_code) %>%
+  left_join(
+    lad_imd %>% select(lad_code, itl1_code, itl1_name, lad_imd_decile),
+    by = c("geo_code" = "lad_code")
+  )
+
+unmatched <- adm_imd %>%
+  filter(is.na(lad_imd_decile)) %>%
+  distinct(geo_code, geo_name)
+cat("Unmatched areas after recoding:", nrow(unmatched), "\n")
+if (nrow(unmatched) > 0) print(unmatched)
+
+# ------------------------------------------------------------
+# 4. Download OxCGRT government policy stringency data
+# ------------------------------------------------------------
+oxcgrt <- read.csv(
+  "https://raw.githubusercontent.com/OxCGRT/covid-policy-dataset/main/data/OxCGRT_compact_subnational_v1.csv"
+)
+
+england_policy <- oxcgrt %>%
+  filter(CountryCode == "GBR", RegionCode == "GBR_ENG") %>%
+  mutate(date = as.Date(as.character(Date), format = "%Y%m%d")) %>%
+  select(date,
+         StringencyIndex_Average,
+         C1M_School.closing,
+         C2M_Workplace.closing,
+         C6M_Stay.at.home.requirements) %>%
+  filter(date >= as.Date("2020-08-01"),
+         date <= release_date)
+
+# ------------------------------------------------------------
+# 5. Aggregate policy data to weekly, with a 1-week lag
+# ------------------------------------------------------------
+policy_weekly <- england_policy %>%
+  mutate(epiweek = floor_date(date, "week", week_start = 1)) %>%
+  group_by(epiweek) %>%
+  summarise(
+    stringency_mean   = mean(StringencyIndex_Average, na.rm = TRUE),
+    school_closing    = max(C1M_School.closing, na.rm = TRUE),
+    workplace_closing = max(C2M_Workplace.closing, na.rm = TRUE),
+    stay_at_home      = max(C6M_Stay.at.home.requirements, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(epiweek) %>%
+  mutate(stringency_lag1 = lag(stringency_mean, 1))
+
+# ------------------------------------------------------------
+# 6. Aggregate hospital admissions to weekly, by LAD
+# ------------------------------------------------------------
+regression_data <- adm_imd %>%
+  filter(!is.na(lad_imd_decile)) %>%
+  mutate(epiweek = floor_date(date, "week", week_start = 1)) %>%
+  group_by(geo_code, geo_name, itl1_code, itl1_name,
+           lad_imd_decile, epiweek) %>%
+  summarise(hosp_admissions = sum(admissions, na.rm = TRUE),
+            .groups = "drop")
+
+# ------------------------------------------------------------
+# 7. Join in weekly policy data
+# ------------------------------------------------------------
+regression_data <- regression_data %>%
+  left_join(policy_weekly, by = "epiweek")
+
+# ------------------------------------------------------------
+# 8. Read ONS mid-year population estimates, keep English LADs
+# ------------------------------------------------------------
+pop_raw <- read_excel(
+  "data/raw/ukpopestimatesmid2020on2021geography.xls",
+  sheet = "MYE2 - Persons",
+  skip  = 7
+)
+
+pop_lad <- pop_raw %>%
+  rename(geo_code   = Code,
+         population = `All ages`) %>%
+  filter(
+    startsWith(geo_code, "E"),
+    !Geography %in% c("Country", "Region",
+                      "Metropolitan County",
+                      "Inner London",
+                      "Outer London")
+  ) %>%
+  select(geo_code, population)
+
+cat("Number of LADs in population data:", nrow(pop_lad), "\n")
+cat("Population range:", range(pop_lad$population), "\n")
+
+# ------------------------------------------------------------
+# 9. Join in population, save final regression dataset
+# ------------------------------------------------------------
+regression_data <- regression_data %>%
+  left_join(pop_lad, by = "geo_code")
+
+cat("Missing population:", sum(is.na(regression_data$population)), "\n")
+cat("Total rows:", nrow(regression_data), "\n")
+
+dir.create("data/processed", recursive = TRUE, showWarnings = FALSE)
+saveRDS(regression_data, "data/processed/regression_data.rds")
+
+# ------------------------------------------------------------
+# 10. Final check
+# ------------------------------------------------------------
+glimpse(regression_data)
+cat("Weeks:", n_distinct(regression_data$epiweek), "\n")
+cat("LADs:", n_distinct(regression_data$geo_code), "\n")
+cat("IMD deciles:", sort(unique(regression_data$lad_imd_decile)), "\n")
+cat("Stringency range:", range(regression_data$stringency_mean, na.rm = TRUE), "\n")
+cat("Missing stringency:", sum(is.na(regression_data$stringency_mean)), "\n")
+
