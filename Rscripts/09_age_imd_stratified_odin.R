@@ -1,20 +1,11 @@
 # ==============================================================
-# Script: 08_age_imd_stratified_odin.R
+# Script: 09_age_imd_stratified_odin.R
 #
-# Purpose: Extend Goodfellow et al. (2024)'s age-stratified SEIRD
-#          model to add hospital compartments (HD, HR), and run
-#          separately for each of the 10 IMD deprivation deciles.
-#
-# Structure follows Goodfellow's SEIRD_model.R, with two changes:
-#   (1) Hospital compartments HD and HR inserted between Ic and
-#       final outcomes, using h_a and mu_ca_h from Knock (2021).
-#   (2) ODE written without with() to avoid scoping issues.
-#
-# Inputs:
-#   data/parameters/pi_matrix.csv
-#   data/parameters/h_mu_by_age.csv
-#   data/parameters/contact_matrix_imd1.csv ... imd10.csv
-#   data/parameters/rural_age.csv
+# Purpose: odin version of script 08 (age-stratified SEIRD +
+#          hospital model, extended from Goodfellow et al. 2024).
+#          Same equations, same parameters -- only the solver
+#          backend changes from deSolve to odin.
+
 # ==============================================================
 
 library(odin)
@@ -23,7 +14,7 @@ library(readr)
 library(ggplot2)
 
 # ------------------------------------------------------------
-# 1. Load parameters (same as script 08)
+# 1. Load parameters 
 # ------------------------------------------------------------
 age_levels <- c("Under 1","1 to 4","5 to 9","10 to 14","15 to 19",
                 "20 to 24","25 to 29","30 to 34","35 to 39","40 to 44",
@@ -35,8 +26,12 @@ h_mu      <- read_csv("data/parameters/h_mu_by_age.csv", show_col_types = FALSE)
 rural_age <- read_csv("data/parameters/rural_age.csv", show_col_types = FALSE) %>%
   mutate(Age = factor(Age, levels = age_levels))
 
-gamma_hd <- 1 / 11.3
-gamma_hr <- 1 / 14.1
+gamma_hd_hr <- read_csv("data/parameters/gamma_hd_hr_by_age.csv",
+                        show_col_types = FALSE)
+gamma_hd_vec <- gamma_hd_hr$gamma_hd  # length 17, age-specific
+gamma_hr_vec <- gamma_hd_hr$gamma_hr  # length 17, age-specific
+cat("gamma_hd range:", round(range(gamma_hd_vec), 4), "\n")
+cat("gamma_hr range:", round(range(gamma_hr_vec), 4), "\n")
 
 # ------------------------------------------------------------
 # 2. odin model definition
@@ -68,10 +63,10 @@ age_seird_hosp <- odin::odin({
   deriv(Ip[]) <-  pi_a[i] * infec * E[i] - sympt * Ip[i]
   deriv(Ic[]) <-  sympt * Ip[i] - (1 / rec_c) * Ic[i]
   deriv(Is[]) <-  (1 - pi_a[i]) * infec * E[i] - rec_s * Is[i]
-  deriv(HD[]) <-  (h_a[i] * mu_ca_h[i] / rec_c) * Ic[i] - gam_hd * HD[i]
-  deriv(HR[]) <-  (h_a[i] * (1 - mu_ca_h[i]) / rec_c) * Ic[i] - gam_hr * HR[i]
-  deriv(D[])  <-  gam_hd * HD[i]
-  deriv(R[])  <-  gam_hr * HR[i] + ((1 - h_a[i]) / rec_c) * Ic[i] + rec_s * Is[i]
+  deriv(HD[]) <-  (h_a[i] * mu_ca_h[i] / rec_c) * Ic[i] - gam_hd[i] * HD[i]
+  deriv(HR[]) <-  (h_a[i] * (1 - mu_ca_h[i]) / rec_c) * Ic[i] - gam_hr[i] * HR[i]
+  deriv(D[])  <-  gam_hd[i] * HD[i]
+  deriv(R[])  <-  gam_hr[i] * HR[i] + ((1 - h_a[i]) / rec_c) * Ic[i] + rec_s * Is[i]
   deriv(Adm[]) <- (h_a[i] / rec_c) * Ic[i]
   
   dim(S)   <- n_age
@@ -120,8 +115,10 @@ age_seird_hosp <- odin::odin({
   rec_c  <- user(2.9)      # NOTE: used as denominator (1/rec_c), so pass duration not rate
   rec_s  <- user(0.2)      # 1/5, rate out of Is
   xi     <- user(0.5)
-  gam_hd <- user()
-  gam_hr <- user()
+  gam_hd[] <- user()
+  dim(gam_hd) <- n_age
+  gam_hr[] <- user()
+  dim(gam_hr) <- n_age
 })
 
 # ------------------------------------------------------------
@@ -157,8 +154,8 @@ run_epidemic_odin <- function(imd_decile, urban = TRUE) {
     h_a        = h_a,
     mu_ca_h    = mu_ca_h,
     contact    = contact,
-    gam_hd     = gamma_hd,
-    gam_hr     = gamma_hr
+    gam_hd     = gamma_hd_vec,
+    gam_hr     = gamma_hr_vec
   )
   
   times <- seq(0, 365, by = 1)
@@ -181,65 +178,67 @@ run_epidemic_odin <- function(imd_decile, urban = TRUE) {
   
   return(result)
 }
-
-# ------------------------------------------------------------
-# 4. Run for all 10 IMD deciles
-# ------------------------------------------------------------
-cat("Running odin model for 10 IMD deciles...\n")
-all_results <- lapply(1:10, function(d) {
-  cat("  IMD decile", d, "\n")
-  run_epidemic_odin(imd_decile = d, urban = TRUE)
-})
-results_df <- bind_rows(all_results)
-
-# ------------------------------------------------------------
-# 5. Sanity checks (should match script 08's deSolve results closely)
-# ------------------------------------------------------------
-summary_stats <- results_df %>%
-  group_by(imd_decile) %>%
-  summarise(
-    peak_adm_per1000  = max(new_adm_per1000, na.rm = TRUE),
-    total_adm_per1000 = max(cum_admissions, na.rm = TRUE) * 1000,
-    attack_rate       = max(attack_rate, na.rm = TRUE),
-    .groups = "drop"
+if (!exists("SKIP09_RUN") || !isTRUE(SKIP09_RUN)) {
+  # ------------------------------------------------------------
+  # 4. Run for all 10 IMD deciles
+  # ------------------------------------------------------------
+  cat("Running odin model for 10 IMD deciles...\n")
+  all_results <- lapply(1:10, function(d) {
+    cat("  IMD decile", d, "\n")
+    run_epidemic_odin(imd_decile = d, urban = TRUE)
+  })
+  results_df <- bind_rows(all_results)
+  
+  # ------------------------------------------------------------
+  # 5. Sanity checks (should match script 08's deSolve results closely)
+  # ------------------------------------------------------------
+  summary_stats <- results_df %>%
+    group_by(imd_decile) %>%
+    summarise(
+      peak_adm_per1000  = max(new_adm_per1000, na.rm = TRUE),
+      total_adm_per1000 = max(cum_admissions, na.rm = TRUE) * 1000,
+      attack_rate       = max(attack_rate, na.rm = TRUE),
+      .groups = "drop"
+    )
+  
+  cat("\n--- Results by IMD decile (1 = most deprived) ---\n")
+  print(summary_stats)
+  cat("\nCompare these numbers against script 08's deSolve output --\n")
+  cat("they should be very close (odin and deSolve solve the same ODEs).\n")
+  
+  # ------------------------------------------------------------
+  # 6. Plot (same as script 08)
+  # ------------------------------------------------------------
+  decile_colours <- c(
+    "#67001f","#b2182b","#d6604d","#f4a582","#fddbc7",
+    "#d1e5f0","#92c5de","#4393c3","#2166ac","#053061"
   )
-
-cat("\n--- Results by IMD decile (1 = most deprived) ---\n")
-print(summary_stats)
-cat("\nCompare these numbers against script 08's deSolve output --\n")
-cat("they should be very close (odin and deSolve solve the same ODEs).\n")
-
-# ------------------------------------------------------------
-# 6. Plot (same as script 08)
-# ------------------------------------------------------------
-decile_colours <- c(
-  "#67001f","#b2182b","#d6604d","#f4a582","#fddbc7",
-  "#d1e5f0","#92c5de","#4393c3","#2166ac","#053061"
-)
-
-p <- ggplot(results_df,
-            aes(x = day, y = new_adm_per1000,
-                colour = factor(imd_decile, levels = 10:1),
-                group  = imd_decile)) +
-  geom_line(linewidth = 0.9, alpha = 0.9) +
-  scale_colour_manual(values = rev(decile_colours),
-                      name = "IMD decile\n(1 = most\ndeprived)") +
-  labs(
-    title    = "Modelled daily hospital admissions by IMD deprivation decile",
-    subtitle = "Age-stratified SEIRD + hospital model (odin), England (urban)",
-    x        = "Day of epidemic",
-    y        = "New hospital admissions per 1,000 population",
-    caption  = "Parameters: Goodfellow et al. (2024) + Knock et al. (2021)."
-  ) +
-  theme_minimal(base_size = 11) +
-  theme(
-    plot.title    = element_text(face = "bold", size = 12),
-    plot.subtitle = element_text(size = 9, colour = "#555555"),
-    plot.caption  = element_text(size = 7.5, colour = "#888888", hjust = 0),
-    panel.grid.minor = element_blank()
-  )
-
-print(p)
-dir.create("output", showWarnings = FALSE)
-ggsave("output/imd_hospital_gradient_odin.png", p, width = 11, height = 6.5, dpi = 200)
-cat("Plot saved to output/imd_hospital_gradient_odin.png\n")
+  
+  p <- ggplot(results_df,
+              aes(x = day, y = new_adm_per1000,
+                  colour = factor(imd_decile, levels = 10:1),
+                  group  = imd_decile)) +
+    geom_line(linewidth = 0.9, alpha = 0.9) +
+    scale_colour_manual(values = rev(decile_colours),
+                        name = "IMD decile\n(1 = most\ndeprived)") +
+    labs(
+      title    = "Modelled daily hospital admissions by IMD deprivation decile",
+      subtitle = "Age-stratified SEIRD + hospital model (odin), England (urban)",
+      x        = "Day of epidemic",
+      y        = "New hospital admissions per 1,000 population",
+      caption  = "Parameters: Goodfellow et al. (2024) + Knock et al. (2021)."
+    ) +
+    theme_minimal(base_size = 11) +
+    theme(
+      plot.title    = element_text(face = "bold", size = 12),
+      plot.subtitle = element_text(size = 9, colour = "#555555"),
+      plot.caption  = element_text(size = 7.5, colour = "#888888", hjust = 0),
+      panel.grid.minor = element_blank()
+    )
+  
+  print(p)
+  dir.create("output", showWarnings = FALSE)
+  ggsave("output/imd_hospital_gradient_odin.png", p, width = 11, height = 6.5, dpi = 200)
+  cat("Plot saved to output/imd_hospital_gradient_odin.png\n")
+  
+}
