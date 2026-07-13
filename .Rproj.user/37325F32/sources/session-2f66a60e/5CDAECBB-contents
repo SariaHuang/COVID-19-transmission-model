@@ -1,5 +1,5 @@
 # ==============================================================
-# Script: 10_verify_R0.R
+# Script: 11_verify_R0.R
 #
 # Purpose: Independently verify that the model's parameters
 #          (contact matrices, clinical fraction) produce a

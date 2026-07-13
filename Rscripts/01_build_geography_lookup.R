@@ -10,29 +10,17 @@
 #   data/raw/Local_Authority_District_(April_2021)_to_LAU1_to_ITL3_to_ITL2_to_ITL1_(January_2021)_Lookup_in_United_Kingdom.csv
 #
 # Output:
-#   data/processed/lookup_LSOA11_STP_ITL2.csv
+#   data/processed/lookup_LSOA11_STP_ITL2.csv (LSOA -> STP -> LAD -> ITL1/2/3)
 # ==============================================================
 
 library(readr)
 library(dplyr)
 
-# ------------------------------------------------------------
-# Read geography lookup files
-# ------------------------------------------------------------
+# LSOA to STP/LAD (England)
 lsoa_stp_lad <- read_csv(
   "data/raw/LSOA11_CCG21_STP21_LAD21_EN_LU_ae1a442ee397483cab1a31f2e7b24029_997658846778534204.csv",
   show_col_types = FALSE
-)
-
-lad_itl <- read_csv(
-  "data/raw/Local_Authority_District_(April_2021)_to_LAU1_to_ITL3_to_ITL2_to_ITL1_(January_2021)_Lookup_in_United_Kingdom.csv",
-  show_col_types = FALSE
-)
-
-# ------------------------------------------------------------
-# Clean LSOA -> STP/LAD lookup
-# ------------------------------------------------------------
-lookup_lsoa_stp_lad <- lsoa_stp_lad %>%
+) %>%
   transmute(
     lsoa_code = LSOA11CD,
     lsoa_name = LSOA11NM,
@@ -42,45 +30,29 @@ lookup_lsoa_stp_lad <- lsoa_stp_lad %>%
     lad_name  = LAD21NM
   )
 
-# ------------------------------------------------------------
-# Clean LAD -> ITL lookup
-# ------------------------------------------------------------
-lookup_lad_itl <- lad_itl %>%
+# LAD to ITL regions (UK)
+lad_itl <- read_csv(
+  "data/raw/Local_Authority_District_(April_2021)_to_LAU1_to_ITL3_to_ITL2_to_ITL1_(January_2021)_Lookup_in_United_Kingdom.csv",
+  show_col_types = FALSE
+) %>%
   transmute(
-    lad_code     = LAD21CD,
-    lad_name_itl = LAD21NM,
-    itl3_code    = ITL321CD,
-    itl3_name    = ITL321NM,
-    itl2_code    = ITL221CD,
-    itl2_name    = ITL221NM,
-    itl1_code    = ITL121CD,
-    itl1_name    = ITL121NM
-  )
+    lad_code  = LAD21CD,
+    itl2_code = ITL221CD,
+    itl2_name = ITL221NM,
+    itl1_code = ITL121CD,
+    itl1_name = ITL121NM
+  ) %>%
+  distinct(lad_code, .keep_all = TRUE)  
 
-# ------------------------------------------------------------
-# Join to create LSOA -> STP -> ITL lookup
-# ------------------------------------------------------------
-lookup_lsoa_stp_itl <- lookup_lsoa_stp_lad %>%
-  left_join(lookup_lad_itl, by = "lad_code")
+# Join: LSOA -> STP -> LAD -> ITL
+lookup <- lsoa_stp_lad %>%
+  left_join(lad_itl, by = "lad_code")
 
-# ------------------------------------------------------------
-# Check result
-# ------------------------------------------------------------
-cat("Unique LSOAs:", n_distinct(lookup_lsoa_stp_itl$lsoa_code), "\n")
-cat("Unique STPs:", n_distinct(lookup_lsoa_stp_itl$stp_name), "\n")
-cat("Unique ITL2:", n_distinct(lookup_lsoa_stp_itl$itl2_name), "\n")
-cat("Missing ITL2 rows:", sum(is.na(lookup_lsoa_stp_itl$itl2_name)), "\n")
+# check
+cat("LSOAs:", n_distinct(lookup$lsoa_code), "\n")
+cat("STPs:", n_distinct(lookup$stp_name), "\n")
+cat("ITL2 regions:", n_distinct(lookup$itl2_name), "\n")
+cat("Missing ITL2:", sum(is.na(lookup$itl2_name)), "\n")
 
-lookup_lsoa_stp_itl %>%
-  select(lsoa_code, stp_name, lad_name, itl2_name, itl1_name) %>%
-  head()
-
-# ------------------------------------------------------------
-# Save result
-# ------------------------------------------------------------
 dir.create("data/processed", recursive = TRUE, showWarnings = FALSE)
-
-write_csv(
-  lookup_lsoa_stp_itl,
-  "data/processed/lookup_LSOA11_STP_ITL2.csv"
-)
+write_csv(lookup, "data/processed/lookup_LSOA11_STP_ITL2.csv")

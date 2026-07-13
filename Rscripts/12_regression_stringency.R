@@ -1,7 +1,6 @@
-rm(list = ls())
 # ==============================================================
 # Script: 12_regression_stringency.R
-#
+#/exploratory/
 # Purpose: Replace factor(epiweek) (saturated week fixed effects)
 #          with a natural spline time trend, ns(week_num, df),
 #          to free up identifying variation for stringency_lag1

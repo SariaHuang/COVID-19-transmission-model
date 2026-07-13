@@ -1,5 +1,5 @@
 # ==============================================================
-# Script: 09_region_stratified_model.R
+# Script: 10_region_stratified_model.R
 #
 # Purpose: Add the region dimension to the age x IMD stratified
 #          model (script 08). Region enters ONLY through population
@@ -9,13 +9,24 @@
 #          but the model equations themselves (odin definition in
 #          script 08) are unchanged.
 #
+# Contact matrix blending :
+#   M_blended = w_urban * M_urban + (1-w_urban) * M_rural
+#   Urban/rural matrices computed from Goodfellow's national age
+#   structures for each IMD decile. Blending weight w_urban is now
+#   REGION x IMD SPECIFIC, computed from LSOA-level Rural Urban
+#   Classification (2011) joined to our LSOA -> region -> IMD lookup.
+#   Fallback to national IMD-level share for sparse cells (<5 LSOAs).
+#
 # Inputs:
 #   data/processed/population_age_imd_region.csv (script 05)
-#   data/parameters/G.csv (Goodfellow intrinsic connectivity matrix)
-#   data/parameters/rural_age.csv (for the Under-1/1-4 split ratio)
+#   data/processed/lookup_LSOA11_STP_ITL2_IMD_clean.csv (script 02)
+#   data/raw/ruc_lsoa_2fold.csv  (Rural Urban Classification 2011)
+#   data/parameters/G.csv
+#   data/parameters/rural_age.csv
+#   data/parameters/urban_share_by_decile.csv (script 07, fallback)
 #   data/parameters/pi_matrix.csv, h_mu_by_age.csv (script 07)
 #
-# our age bins (0-4, 5-9, ..., 80+) don't exactly match
+# CAVEAT: our age bins (0-4, 5-9, ..., 80+) don't exactly match
 # Goodfellow's (Under 1, 1-4, ..., 75+). We approximate by splitting
 # our 0-4 band into Under-1/1-4 using Goodfellow's national-level
 # ratio, and merging our 75-79 + 80+ into his 75+ band. This is a
@@ -30,8 +41,6 @@ library(dplyr)
 library(tidyr)
 library(readr)
 library(ggplot2)
-
-#source("Rscripts/08_age_imd_stratified_model.R")  # reuses age_seird_hosp generator
 
 
 age_levels_gf <- c("Under 1","1 to 4","5 to 9","10 to 14","15 to 19",
@@ -102,28 +111,114 @@ cat("Expected (9 regions x 10 deciles x 17 ages):", 9*10*17, "\n")
 
 # ------------------------------------------------------------
 # 3. Build contact matrix and proportion vector per region x decile
+#
+#    Urban/rural blending (advisor's request, consistent with script 07):
+#      M_blended = w_urban * M_urban + (1-w_urban) * M_rural
+#
+#    Improvement over script 07: w_urban is now REGION x IMD SPECIFIC,
+#    computed from LSOA-level Rural Urban Classification (2011) joined
+#    to our LSOA -> region -> IMD lookup. Each LSOA counts as one unit
+#    (each LSOA ~1,500 people, so LSOA count is a valid population proxy).
+#
+#    For M_urban and M_rural, we use Goodfellow's national urban/rural
+#    age structures for that IMD decile (rural_age.csv) -- the best
+#    available proxy since we don't have region x IMD x urban/rural
+#    age breakdowns.
+#
+#    Fallback: if a region x IMD cell has no LSOA data (sparse cells),
+#    falls back to the national IMD-level urban share.
 # ------------------------------------------------------------
 G <- as.matrix(read_csv("data/parameters/G.csv", show_col_types = FALSE))
 
+rural_age_gf_full <- read_csv("data/parameters/rural_age.csv",
+                              show_col_types = FALSE) %>%
+  mutate(Age = factor(Age, levels = age_levels_gf))
+
+# National urban share per IMD decile (fallback)
+urban_share_national <- read_csv("data/parameters/urban_share_by_decile.csv",
+                                 show_col_types = FALSE)
+
+# --- Compute region x IMD urban share from LSOA-level RUC data ---
+ruc_lsoa <- read_csv("data/raw/ruc_lsoa_2fold.csv", show_col_types = FALSE)
+
+lsoa_lookup <- read_csv("data/processed/lookup_LSOA11_STP_ITL2_IMD_clean.csv",
+                        show_col_types = FALSE)
+
+# Join RUC to LSOA lookup to get region + IMD decile for each LSOA
+# Column names may vary -- adjust if needed
+lsoa_ruc <- lsoa_lookup %>%
+  dplyr::select(any_of(c("lsoa11cd","LSOA11CD","lsoa_code")),
+                any_of(c("itl1_name","ITL1NAME","region")),
+                any_of(c("lad_imd_decile","imd_decile","IMD_decile"))) %>%
+  setNames(c("lsoa_code","itl1_name","lad_imd_decile")) %>%
+  inner_join(ruc_lsoa, by = "lsoa_code")
+
+# Urban share per region x IMD decile (LSOA count as proxy for population)
+urban_share_region_imd <- lsoa_ruc %>%
+  group_by(itl1_name, lad_imd_decile) %>%
+  summarise(
+    n_urban = sum(urban_rural == "Urban"),
+    n_total = n(),
+    w_urban = n_urban / n_total,
+    .groups = "drop"
+  )
+
+cat("\n--- Urban share by region x IMD decile (sample) ---\n")
+print(urban_share_region_imd %>% arrange(itl1_name, lad_imd_decile) %>% head(20))
+
+compute_setting_matrix_from_vec <- function(pop_vec) {
+  M <- matrix(nrow = 17, ncol = 17)
+  for (i in 1:17) {
+    for (j in 1:17) {
+      M[i, j] <- G[i, j] * pop_vec[j] / sum(pop_vec)
+    }
+  }
+  M
+}
+
 get_region_decile_inputs <- function(region, decile) {
-  pop_vec <- pop_region_rebinned %>%
+  
+  # Total population for this region x decile (from rebinned ONS data)
+  pop_vec_total <- pop_region_rebinned %>%
     filter(itl1_name == region, lad_imd_decile == decile) %>%
     arrange(age_band_gf) %>%
     pull(population)
   
-  if (length(pop_vec) != 17 || sum(pop_vec, na.rm = TRUE) == 0) {
-    return(NULL)  # sparse cell -- no population data for this combination
+  if (length(pop_vec_total) != 17 || sum(pop_vec_total, na.rm = TRUE) == 0) {
+    return(NULL)
   }
   
-  contact <- matrix(nrow = 17, ncol = 17)
-  for (i in 1:17) {
-    for (j in 1:17) {
-      contact[i, j] <- G[i, j] * pop_vec[j] / sum(pop_vec)
-    }
-  }
-  proportion <- pop_vec / sum(pop_vec)
+  # Region x IMD specific urban weight (from LSOA RUC data)
+  # Fall back to national IMD-level share if this region x decile is sparse
+  w_row <- urban_share_region_imd %>%
+    filter(itl1_name == region, lad_imd_decile == decile)
   
-  list(contact = contact, proportion = proportion)
+  if (nrow(w_row) == 0 || w_row$n_total < 5) {
+    # Fallback: use national IMD-level share
+    w_urban <- urban_share_national$w_urban[urban_share_national$IMD == decile]
+  } else {
+    w_urban <- w_row$w_urban
+  }
+  
+  # Urban/rural age structures for this IMD decile (national, from Goodfellow)
+  pop_urban_nat <- rural_age_gf_full %>%
+    filter(IMD == decile, rural == "Urban") %>%
+    arrange(Age) %>%
+    pull(Population)
+  
+  pop_rural_nat <- rural_age_gf_full %>%
+    filter(IMD == decile, rural == "Rural") %>%
+    arrange(Age) %>%
+    pull(Population)
+  
+  M_urban  <- compute_setting_matrix_from_vec(pop_urban_nat)
+  M_rural  <- compute_setting_matrix_from_vec(pop_rural_nat)
+  M_blended <- w_urban * M_urban + (1 - w_urban) * M_rural
+  
+  # proportion: actual region x IMD total age structure (region-specific)
+  proportion <- pop_vec_total / sum(pop_vec_total)
+  
+  list(contact = M_blended, proportion = proportion)
 }
 
 # ------------------------------------------------------------
@@ -131,8 +226,10 @@ get_region_decile_inputs <- function(region, decile) {
 # ------------------------------------------------------------
 pi_matrix <- read_csv("data/parameters/pi_matrix.csv", show_col_types = FALSE)
 h_mu      <- read_csv("data/parameters/h_mu_by_age.csv", show_col_types = FALSE)
-gamma_hd  <- 1 / 11.3
-gamma_hr  <- 1 / 14.1
+gamma_hd_hr <- read_csv("data/parameters/gamma_hd_hr_by_age.csv",
+                        show_col_types = FALSE)
+gamma_hd_vec <- gamma_hd_hr$gamma_hd  # length 17, age-specific
+gamma_hr_vec <- gamma_hd_hr$gamma_hr  # length 17, age-specific
 
 regions <- unique(pop_region_rebinned$itl1_name)
 
@@ -151,7 +248,7 @@ run_region_decile <- function(region, decile) {
   mod <- age_seird_hosp$new(
     S0 = S0, Ip0 = Ip0, proportion = inputs$proportion,
     pi_a = pi_a, h_a = h_a, mu_ca_h = mu_ca_h,
-    contact = inputs$contact, gam_hd = gamma_hd, gam_hr = gamma_hr
+    contact = inputs$contact, gam_hd = gamma_hd_vec, gam_hr = gamma_hr_vec
   )
   
   out <- as.data.frame(mod$run(seq(0, 365, by = 1)))

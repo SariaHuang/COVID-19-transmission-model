@@ -5,7 +5,7 @@
 #          observed NHS weekly hospital admissions using monty MCMC.
 #
 # Approach: WRAPPER approach (not native odin2/dust2/monty).
-#   - Reuses the validated odin model from script 09 (age_seird_hosp)
+#   - Reuses the validated odin2 model from script 09 (age_seird_hosp)
 #   - monty_model_function wraps a hand-written log-likelihood
 #
 # Parameters fitted (per IMD decile):
@@ -14,40 +14,43 @@
 #
 # I0_frac fixed at 1e-4:
 #   Not identifiable separately from beta in a single-wave
-#   deterministic ODE model (beta and I0_frac are confounded along
-#   a likelihood ridge). Fixed at 1e-4 (~1 case per 10,000).
-#   Reported as a methodological note in dissertation.
+#   deterministic ODE model. Fixed at 1e-4 (~1 case per 10,000).
 #
-# Data window (Path A):
-#   obs_data from 2020-07-27, filtered to autumn/winter wave 1
-#   (first trough after first peak, auto-detected from decile 1).
+# pop_size: urban population only (matches model assumption urban=TRUE).
+#   Total population inflates predictions for deciles 3-8 where
+#   urban fraction drops to 73-85%.
 #
-# Prerequisite: add guard to script 09 section 4:
-#   if (!exists("SKIP09_RUN") || !isTRUE(SKIP09_RUN)) { ... }
+# Data window:
+#   obs_data from 2020-07-27, filtered to autumn/winter wave 1.
+#   Wave end manually set to 2021-04-05; auto-detection returned
+#   2021-05-10 which extends beyond the genuine inter-wave trough.
 # ==============================================================
 
-library(odin)
+library(odin2)
+library(dust2)
 library(monty)
 library(dplyr)
 library(readr)
 library(zoo)
 library(ggplot2)
 
-# ------------------------------------------------------------
-# 1. Source model definition from scripts 08 and 09
-# ------------------------------------------------------------
-SKIP09_RUN <- TRUE
-source("Rscripts/08_refine_gamma_hd_hr.R")
-source("Rscripts/09_age_imd_stratified_odin.R")
-rm(SKIP09_RUN)
-
+# Load model and parameters from scripts 08 and 09
+if (!exists("age_seird_hosp")) {
+  SKIP09_RUN <- TRUE
+  source("Rscripts/08_refine_gamma_hd_hr.R")
+  source("Rscripts/09_age_imd_stratified_odin.R")
+  rm(SKIP09_RUN)
+}
 stopifnot(exists("age_seird_hosp"))
-cat("odin model loaded: age_seird_hosp\n")
+cat("odin2 model loaded: age_seird_hosp\n")
 
+# State indices in dust2 output (170 states: 10 compartments x 17 ages)
+# Order: S[1:17], E[18:34], Ip[35:51], Ic[52:68], Is[69:85],
+#        HD[86:102], HR[103:119], D[120:136], R[137:153], Adm[154:170]
+adm_idx <- 154:170
+s_idx   <- 1:17
 
-# ------------------------------------------------------------
-# 2. Load observed data
-# ------------------------------------------------------------
+# Observed weekly admissions
 obs_data <- read_csv("data/processed/observed_weekly_admissions.csv",
                      show_col_types = FALSE)
 
@@ -55,13 +58,7 @@ cat("obs_data:", nrow(obs_data), "rows,",
     n_distinct(obs_data$epiweek), "weeks, from",
     format(min(obs_data$epiweek)), "to", format(max(obs_data$epiweek)), "\n")
 
-# ------------------------------------------------------------
-# 3. Define model day 0 and auto-detect wave 1 end
-#
-#    model day 0 = 2020-07-27 (earliest obs_data date)
-#    model day k = date (model_day0 + k days)
-#    epiweek 1 = model days 1-7, epiweek 2 = days 8-14, etc.
-# ------------------------------------------------------------
+# Wave 1 end: manually set to 2021-04-05
 model_day0 <- min(obs_data$epiweek)
 
 obs_d1_full <- obs_data %>%
@@ -71,16 +68,12 @@ obs_d1_full <- obs_data %>%
                                   fill = NA, align = "center"))
 
 peak_idx       <- which.max(obs_d1_full$smoothed)
-after_peak     <- obs_d1_full[peak_idx:nrow(obs_d1_full), ]
-trough_idx_rel <- which.min(after_peak$smoothed)
-first_wave_end <- after_peak$epiweek[trough_idx_rel]
+first_wave_end <- as.Date("2021-04-05")
 
-cat("\nWave 1 window (auto-detected from decile 1):\n")
+cat("\nWave 1 window:\n")
 cat("  Model day 0 :", format(model_day0), "\n")
 cat("  Peak date   :", format(obs_d1_full$epiweek[peak_idx]), "\n")
-cat("  Trough date :", format(first_wave_end), "\n")
-cat("  VERIFY: does the trough date look like the genuine inter-wave low?\n")
-cat("  If not, set first_wave_end manually before continuing.\n\n")
+cat("  Trough date :", format(first_wave_end), "(manually set)\n\n")
 
 obs_data_wave1 <- obs_data %>%
   filter(epiweek >= model_day0, epiweek <= first_wave_end) %>%
@@ -94,15 +87,8 @@ if (n_wave1_weeks < 8) {
        " weeks -- check smoothing or set first_wave_end manually.")
 }
 
-# ------------------------------------------------------------
-# 4. run_epidemic_fit
-#    Wrapper around the validated odin model from script 09.
-#    Accepts beta and I0_frac overrides; all other inputs
-#    (contact matrices, pi_a, h_a etc.) loaded by script 09.
-# ------------------------------------------------------------
+# Run odin2 model for one decile
 run_epidemic_fit <- function(imd_decile, beta, I0_frac, urban = TRUE) {
-  
-  setting <- if (urban) "Urban" else "Rural"
   
   contact <- as.matrix(read.csv(
     paste0("data/parameters/contact_matrix_imd", imd_decile, ".csv"),
@@ -114,7 +100,8 @@ run_epidemic_fit <- function(imd_decile, beta, I0_frac, urban = TRUE) {
   mu_ca_h <- h_mu$mu_ca_h
   
   proportion <- rural_age %>%
-    filter(IMD == imd_decile, rural == setting) %>%
+    filter(IMD == imd_decile,
+           rural == if (urban) "Urban" else "Rural") %>%
     arrange(Age) %>%
     pull(Proportion)
   
@@ -122,7 +109,7 @@ run_epidemic_fit <- function(imd_decile, beta, I0_frac, urban = TRUE) {
   S0[8] <- S0[8] - I0_frac
   Ip0   <- c(rep(0, 7), I0_frac, rep(0, 9))
   
-  mod <- age_seird_hosp$new(
+  sys <- dust2::dust_system_create(age_seird_hosp, list(
     S0         = S0,
     Ip0        = Ip0,
     proportion = proportion,
@@ -133,33 +120,25 @@ run_epidemic_fit <- function(imd_decile, beta, I0_frac, urban = TRUE) {
     gam_hd     = gamma_hd_vec,
     gam_hr     = gamma_hr_vec,
     susc       = beta
-  )
-  
-  times <- seq(0, 365, by = 1)
-  out   <- as.data.frame(mod$run(times))
-  
-  adm_cols <- grep("^Adm\\[", names(out))
-  S_cols   <- grep("^S\\[",   names(out))
+  ))
+  dust2::dust_system_set_state_initial(sys)
+  out <- dust2::dust_system_simulate(sys, seq(0, 365, by = 1))
   
   data.frame(
-    day            = out$t,
-    cum_admissions = rowSums(out[, adm_cols]),
-    S_remaining    = rowSums(out[, S_cols])
+    day            = 0:365,
+    cum_admissions = colSums(out[adm_idx, ]),
+    S_remaining    = colSums(out[s_idx,   ])
   ) %>%
     mutate(attack_rate = 1 - S_remaining)
 }
 
-# ------------------------------------------------------------
-# 5. Log-likelihood function
-# ------------------------------------------------------------
+# Negative binomial log-likelihood
+# pop_size: URBAN only -- matches model assumption (urban=TRUE)
 run_log_likelihood <- function(beta, I0_frac, size,
                                imd_decile, obs_weekly,
                                n_weeks, pop_size) {
   tryCatch({
-    
-    out <- run_epidemic_fit(imd_decile = imd_decile,
-                            beta = beta, I0_frac = I0_frac)
-    
+    out       <- run_epidemic_fit(imd_decile, beta, I0_frac)
     daily_adm <- c(0, diff(out$cum_admissions)) * pop_size
     
     pred_weekly <- sapply(seq_len(n_weeks), function(w) {
@@ -170,16 +149,12 @@ run_log_likelihood <- function(beta, I0_frac, size,
     })
     
     pred_weekly <- pmax(pred_weekly, 0.01)
-    
     sum(dnbinom(obs_weekly, mu = pred_weekly, size = size, log = TRUE))
     
   }, error = function(e) -Inf)
 }
 
-# ------------------------------------------------------------
-# 6. Pre-MCMC structural checks
-#    If any check fails, do NOT proceed to MCMC.
-# ------------------------------------------------------------
+# Pre-MCMC structural checks
 cat("--- Pre-MCMC structural checks ---\n")
 
 obs_d1_w1 <- obs_data_wave1 %>%
@@ -189,7 +164,7 @@ obs_d1_w1 <- obs_data_wave1 %>%
 stopifnot("No wave 1 data for decile 1" = nrow(obs_d1_w1) > 0)
 
 pop_size_d1 <- rural_age %>%
-  filter(IMD == 1) %>%
+  filter(IMD == 1, rural == "Urban") %>%
   summarise(pop = sum(Population)) %>%
   pull(pop)
 
@@ -203,23 +178,17 @@ cat("  Cum admissions (proportion):  ",
     round(tail(check$cum_admissions, 1), 5), "\n")
 
 ll_test <- run_log_likelihood(
-  beta       = 0.06,
-  I0_frac    = 1e-4,
-  size       = 10,
+  beta = 0.06, I0_frac = 1e-4, size = 10,
   imd_decile = 1,
   obs_weekly = obs_d1_w1$obs_admissions,
   n_weeks    = nrow(obs_d1_w1),
   pop_size   = pop_size_d1
 )
 cat("  Log-likelihood at starting values:", round(ll_test, 2), "\n")
-
-if (!is.finite(ll_test)) {
-  stop("Likelihood not finite at starting values.\n",
-       "Check: wave 1 window dates, pop_size scale, model peak timing.")
-}
+if (!is.finite(ll_test)) stop("Likelihood not finite at starting values.")
 cat("  All pre-MCMC checks passed.\n\n")
 
-# Pred vs obs diagnostic plot
+# Pred vs obs diagnostic plot at starting values
 daily_adm_d1 <- c(0, diff(check$cum_admissions)) * pop_size_d1
 n_w1         <- nrow(obs_d1_w1)
 
@@ -230,25 +199,17 @@ pred_start <- sapply(seq_len(n_w1), function(w) {
   sum(daily_adm_d1[day_start:day_end])
 })
 
-dev.new()
 plot(seq_len(n_w1), obs_d1_w1$obs_admissions,
      type = "l", col = "black",
-     xlab = "Week from model day 0 (2020-07-27)",
+     xlab = "Week from 2020-07-27",
      ylab = "Weekly admissions",
-     main = "Decile 1, wave 1: observed (black) vs predicted at starting values (red)")
+     main = "Decile 1: observed (black) vs predicted at starting values (red)")
 lines(seq_len(n_w1), pred_start, col = "red")
-legend("topright",
-       legend = c("observed", "predicted"),
-       col = c("black", "red"), lty = 1)
-cat("Inspect pred vs obs plot before proceeding to MCMC.\n\n")
+legend("topright", legend = c("Observed","Predicted"),
+       col = c("black","red"), lty = 1)
 
-# ------------------------------------------------------------
-# 7. fit_decile: monty MCMC
-#
-#    Fits log_beta and log_size only.
-#    I0_frac fixed at 1e-4 (not identifiable from beta in a
-#    single-wave deterministic model -- see header note).
-# ------------------------------------------------------------
+# monty MCMC fitting function
+# pop_size: URBAN only
 fit_decile <- function(imd_decile, n_samples = 2000, n_chains = 3) {
   
   cat("=== Fitting IMD decile", imd_decile, "===\n")
@@ -266,7 +227,7 @@ fit_decile <- function(imd_decile, n_samples = 2000, n_chains = 3) {
   n_weeks    <- nrow(obs_d)
   
   pop_size <- rural_age %>%
-    filter(IMD == imd_decile) %>%
+    filter(IMD == imd_decile, rural == "Urban") %>%
     summarise(pop = sum(Population)) %>%
     pull(pop)
   
@@ -289,9 +250,7 @@ fit_decile <- function(imd_decile, n_samples = 2000, n_chains = 3) {
   
   likelihood <- monty::monty_model_function(ll_fn)
   posterior  <- likelihood + prior
-  
-  vcv     <- diag(2) * c(0.02, 0.04)
-  sampler <- monty::monty_sampler_random_walk(vcv)
+  sampler    <- monty::monty_sampler_random_walk(diag(2) * c(0.02, 0.04))
   
   samples <- monty::monty_sample(
     posterior, sampler, n_samples,
@@ -303,69 +262,85 @@ fit_decile <- function(imd_decile, n_samples = 2000, n_chains = 3) {
   return(samples)
 }
 
-# ------------------------------------------------------------
-# 8. Formal run: decile 1, 2000 samples x 3 chains
-#
-#    Convergence criteria before scaling to all 10 deciles:
-#    (a) beta: all 3 chains stable and overlapping after burn-in
-#    (b) size: not trending toward 0, chains overlapping
-#    (c) size median > 1 (model is genuinely fitting, not
-#        absorbing residuals via overdispersion)
-# ------------------------------------------------------------
+# Run all 10 deciles
 dir.create("output/fitting", recursive = TRUE, showWarnings = FALSE)
 
-cat("Fitting decile 1: 2000 samples x 3 chains...\n")
-fit_d1 <- fit_decile(imd_decile = 1, n_samples = 2000, n_chains = 3)
+cat("Fitting all 10 IMD deciles...\n")
+all_fits <- lapply(1:10, function(d) {
+  fit <- fit_decile(imd_decile = d, n_samples = 2000, n_chains = 3)
+  if (!is.null(fit)) {
+    saveRDS(fit, paste0("output/fitting/fitted_samples_imd", d, ".rds"))
+  }
+  fit
+})
+cat("All deciles done. Results saved to output/fitting/\n")
 
-if (!is.null(fit_d1)) {
-  saveRDS(fit_d1, "output/fitting/fitted_samples_imd1.rds")
-  cat("Saved: output/fitting/fitted_samples_imd1.rds\n")
-  
-  # Trace plots: all 3 chains for each parameter
-  chain_cols <- c("black", "steelblue", "firebrick")
-  dev.new()
-  par(mfrow = c(2, 3))
-  
-  for (ch in 1:3) {
-    pars <- fit_d1$pars[,,ch]
-    plot(exp(pars[1,]), type = "l", col = chain_cols[ch],
-         main  = paste("beta — chain", ch),
-         ylab  = "beta", xlab = "Index",
-         ylim  = range(sapply(1:3, function(c)
-           range(exp(fit_d1$pars[1,,c])))))
-  }
-  for (ch in 1:3) {
-    pars <- fit_d1$pars[,,ch]
-    plot(exp(pars[2,]), type = "l", col = chain_cols[ch],
-         main  = paste("size — chain", ch),
-         ylab  = "size", xlab = "Index",
-         ylim  = range(sapply(1:3, function(c)
-           range(exp(fit_d1$pars[2,,c])))))
-  }
-  
-  # Posterior summary across all chains (discard first 500 as burn-in)
-  burnin <- 500
-  cat("\n--- Posterior summary, decile 1 (chains 1-3, after burn-in) ---\n")
-  for (ch in 1:3) {
-    pars <- fit_d1$pars[, (burnin + 1):2000, ch]
-    cat(sprintf("Chain %d:  beta median = %.5f   size median = %.3f\n",
-                ch,
-                median(exp(pars[1,])),
-                median(exp(pars[2,]))))
-  }
-  cat("\nIf all 3 chains agree on beta and size medians,\n")
-  cat("proceed to section 9 (full 10-decile run).\n")
+# Posterior summary
+burnin <- 500
+cat("\n--- Posterior summary, all deciles (burn-in 500 discarded) ---\n")
+cat(sprintf("%-10s  %-30s  %-30s\n",
+            "Decile", "beta median (C1/C2/C3)", "size median (C1/C2/C3)"))
+
+for (d in 1:10) {
+  fit <- all_fits[[d]]
+  if (is.null(fit)) next
+  beta_med <- sapply(1:3, function(ch)
+    round(median(exp(fit$pars[1, (burnin+1):2000, ch])), 5))
+  size_med <- sapply(1:3, function(ch)
+    round(median(exp(fit$pars[2, (burnin+1):2000, ch])), 3))
+  cat(sprintf("Decile %2d:  beta = %s   size = %s\n",
+              d,
+              paste(beta_med, collapse = " / "),
+              paste(size_med, collapse = " / ")))
 }
 
-# ------------------------------------------------------------
-# 9. Full 10-decile run (uncomment after section 8 passes)
-# ------------------------------------------------------------
-# cat("\nFitting all 10 IMD deciles...\n")
-# all_fits <- lapply(1:10, function(d) {
-#   fit <- fit_decile(imd_decile = d, n_samples = 2000, n_chains = 3)
-#   if (!is.null(fit)) {
-#     saveRDS(fit, paste0("output/fitting/fitted_samples_imd", d, ".rds"))
-#   }
-#   fit
-# })
-# cat("All deciles done. Results saved to output/fitting/\n")
+# Validation plot: pred vs obs, all 10 deciles
+cat("\nDrawing validation plot...\n")
+dir.create("output/validation", recursive = TRUE, showWarnings = FALSE)
+
+par(mfrow = c(2, 5), mar = c(4, 4, 2, 1))
+
+for (d in 1:10) {
+  fit <- all_fits[[d]]
+  if (is.null(fit)) next
+  
+  beta_post <- median(sapply(1:3, function(ch)
+    median(exp(fit$pars[1, (burnin+1):2000, ch]))))
+  
+  obs_d <- obs_data_wave1 %>%
+    filter(lad_imd_decile == d) %>%
+    arrange(epiweek)
+  
+  pop_size <- rural_age %>%
+    filter(IMD == d, rural == "Urban") %>%
+    summarise(pop = sum(Population)) %>%
+    pull(pop)
+  
+  out       <- run_epidemic_fit(imd_decile = d, beta = beta_post, I0_frac = 1e-4)
+  daily_adm <- c(0, diff(out$cum_admissions)) * pop_size
+  n_w       <- nrow(obs_d)
+  
+  pred <- sapply(seq_len(n_w), function(w) {
+    d1 <- 7 * (w - 1) + 1
+    d2 <- min(7 * w, nrow(out))
+    if (d1 > nrow(out)) return(0)
+    sum(daily_adm[d1:d2])
+  })
+  
+  plot(seq_len(n_w), obs_d$obs_admissions,
+       type = "l", col = "black",
+       main = paste("Decile", d),
+       xlab = "Week", ylab = "Admissions",
+       ylim = range(c(obs_d$obs_admissions, pred), na.rm = TRUE))
+  lines(seq_len(n_w), pred, col = "red")
+  
+  if (d == 1) {
+    legend("topleft", legend = c("Observed","Predicted"),
+           col = c("black","red"), lty = 1, cex = 0.8)
+  }
+}
+
+dev.copy(png, "output/validation/pred_vs_obs_all_deciles.png",
+         width = 1600, height = 700, res = 120)
+dev.off()
+cat("Validation plot saved: output/validation/pred_vs_obs_all_deciles.png\n")
