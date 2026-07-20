@@ -18,6 +18,7 @@
 #        decile-specific model contact matrices.
 #
 # Beta: fixed at decile 1 posterior median (0.031).
+# Population: blended urban/rural (consistent with scripts 09/13).
 #
 # Outputs: output/plots/school_closure/
 #   17_fig1_R0_reduction.png
@@ -48,6 +49,7 @@ if (!exists("age_seird_hosp")) {
   rm(SKIP09_RUN)
   cat("odin2 model loaded.\n")
 }
+stopifnot(exists("get_blended_inputs"))
 
 if (!exists("age_labels")) {
   age_labels <- c("Under 1","1 to 4","5 to 9","10 to 14","15 to 19",
@@ -71,7 +73,6 @@ cat(sprintf("Fixed beta: %.5f\n", beta_fixed))
 dir.create("output/plots/school_closure", recursive = TRUE,
            showWarnings = FALSE)
 
-# State indices in dust2 output (170 states: 10 x 17)
 adm_idx <- 154:170
 d_idx   <- 120:136
 
@@ -106,7 +107,6 @@ for (i in 1:17) for (j in 1:17) {
 school_frac <- pmin(G_school / (G + 1e-10), 1)
 cat(sprintf("  School contacts: %.1f%% of total\n", sum(G_school)/sum(G)*100))
 
-# School closure contact matrix
 make_school_closure_matrix <- function(imd_decile, x = 1) {
   M_total <- as.matrix(read.csv(
     paste0("data/parameters/contact_matrix_imd", imd_decile, ".csv"),
@@ -114,7 +114,6 @@ make_school_closure_matrix <- function(imd_decile, x = 1) {
   pmax(M_total * (1 - x * school_frac), 0)
 }
 
-# R0 computation via Next Generation Matrix
 compute_R0 <- function(M, pi_a, beta,
                        sympt=1/2.1, rec_c=2.9, rec_s=5, xi=0.5) {
   ip  <- pi_a*(1/sympt+rec_c) + xi*(1-pi_a)*rec_s
@@ -139,9 +138,8 @@ r0_results <- map_dfr(1:10, function(d) {
 cat("\n--- R0 results ---\n")
 print(r0_results)
 
-# Run odin2 model: baseline vs school closure
-run_epidemic_school <- function(imd_decile, beta,
-                                school_closed = FALSE, urban = TRUE) {
+# Run odin2 model using blended population
+run_epidemic_school <- function(imd_decile, beta, school_closed = FALSE) {
   contact <- if (school_closed) make_school_closure_matrix(imd_decile) else
     as.matrix(read.csv(
       paste0("data/parameters/contact_matrix_imd", imd_decile, ".csv"),
@@ -151,14 +149,9 @@ run_epidemic_school <- function(imd_decile, beta,
   h_a     <- h_mu$h_a
   mu_ca_h <- h_mu$mu_ca_h
   
-  proportion <- rural_age %>%
-    filter(IMD == imd_decile,
-           rural == if (urban) "Urban" else "Rural") %>%
-    arrange(Age) %>% pull(Proportion)
-  pop_by_age <- rural_age %>%
-    filter(IMD == imd_decile,
-           rural == if (urban) "Urban" else "Rural") %>%
-    arrange(Age) %>% pull(Population)
+  blended    <- get_blended_inputs(imd_decile)
+  proportion <- blended$proportion
+  pop_by_age <- proportion * blended$pop_size
   
   S0 <- proportion; S0[8] <- S0[8] - 1e-4
   Ip0 <- c(rep(0,7), 1e-4, rep(0,9))
@@ -174,7 +167,7 @@ run_epidemic_school <- function(imd_decile, beta,
   map_dfr(seq_along(age_labels), function(a) {
     data.frame(day=0:365, imd_decile=imd_decile,
                age_group=age_labels[a], age_idx=a,
-               pop_urban=pop_by_age[a],
+               pop_blended   = pop_by_age[a],
                cum_adm_per1000   = out[adm_idx[a], ] * 1000,
                cum_death_per1000 = out[d_idx[a],   ] * 1000,
                school_closed=school_closed)
@@ -194,7 +187,7 @@ closure_ode <- map_dfr(1:10, function(d) {
 })
 
 final_base_sc <- baseline_ode %>%
-  group_by(imd_decile, age_group, age_idx, pop_urban) %>%
+  group_by(imd_decile, age_group, age_idx, pop_blended) %>%
   slice_max(day, n=1) %>% ungroup() %>%
   rename(adm_base=cum_adm_per1000, death_base=cum_death_per1000) %>%
   select(-school_closed)
@@ -203,7 +196,7 @@ final_closed_sc <- closure_ode %>%
   group_by(imd_decile, age_group, age_idx) %>%
   slice_max(day, n=1) %>% ungroup() %>%
   rename(adm_closed=cum_adm_per1000, death_closed=cum_death_per1000) %>%
-  select(-school_closed, -pop_urban)
+  select(-school_closed, -pop_blended)
 
 sc_results <- left_join(final_base_sc, final_closed_sc,
                         by=c("imd_decile","age_group","age_idx")) %>%
@@ -212,8 +205,8 @@ sc_results <- left_join(final_base_sc, final_closed_sc,
     death_reduction   = death_base - death_closed,
     adm_pct_red       = pmax(adm_reduction   / adm_base   * 100, 0),
     death_pct_red     = pmax(death_reduction / death_base * 100, 0),
-    adm_avoided_abs   = adm_reduction   / 1000 * pop_urban,
-    death_avoided_abs = death_reduction / 1000 * pop_urban
+    adm_avoided_abs   = adm_reduction   / 1000 * pop_blended,
+    death_avoided_abs = death_reduction / 1000 * pop_blended
   )
 
 decile_sc_summary <- sc_results %>%
@@ -320,7 +313,8 @@ sc_caption <- paste0(
   "School closure: POLYMOD UK school contact fraction removed from ",
   "decile-specific contact matrices (Mossong et al. 2008, via socialmixr), ",
   "following Goodfellow et al. (2024). \u03b2 fixed at decile 1 posterior ",
-  "median (0.031). Model: age \u00d7 IMD SEIRD + hospital (odin2).")
+  "median (0.031). Population: blended urban/rural per decile. ",
+  "Model: age \u00d7 IMD SEIRD + hospital (odin2).")
 
 # Figure 1: R0
 cat("\nPlot 1: R0 by decile...\n")
@@ -334,9 +328,12 @@ fig1_data <- decile_sc_summary %>%
 p1 <- ggplot(fig1_data, aes(x=imd_decile, y=R0, colour=scenario, group=scenario)) +
   geom_line(linewidth=1.1) + geom_point(size=2.5) +
   geom_hline(yintercept=1, linetype="dashed", colour="#cc0000", alpha=0.6) +
-  annotate("text", x=0.7, y=1.05, label="R\u2080 = 1", colour="#cc0000", size=3, hjust=0) +
-  scale_x_continuous(breaks=1:10, labels=c("1\n(most\ndeprived)",2:9,"10\n(least\ndeprived)")) +
-  scale_colour_manual(values=c("Baseline"="steelblue","Schools closed"="#d73027"), name=NULL) +
+  annotate("text", x=0.7, y=1.05, label="R\u2080 = 1",
+           colour="#cc0000", size=3, hjust=0) +
+  scale_x_continuous(breaks=1:10,
+                     labels=c("1\n(most\ndeprived)",2:9,"10\n(least\ndeprived)")) +
+  scale_colour_manual(values=c("Baseline"="steelblue","Schools closed"="#d73027"),
+                      name=NULL) +
   labs(title="Effect of school closure on R\u2080 by IMD deprivation decile",
        subtitle="POLYMOD UK school contact fraction removed \u2014 \u03b2 fixed at 0.031",
        x="IMD deprivation decile", y="Basic reproduction number (R\u2080)",
@@ -357,10 +354,13 @@ fig2_data <- decile_sc_summary %>%
   mutate(scenario=recode(scenario,"adm_base_total"="Baseline",
                          "adm_closed_total"="Schools closed"))
 
-p2 <- ggplot(fig2_data, aes(x=imd_decile, y=adm_per1000, colour=scenario, group=scenario)) +
+p2 <- ggplot(fig2_data, aes(x=imd_decile, y=adm_per1000,
+                            colour=scenario, group=scenario)) +
   geom_line(linewidth=1.1) + geom_point(size=2.5) +
-  scale_x_continuous(breaks=1:10, labels=c("1\n(most\ndeprived)",2:9,"10\n(least\ndeprived)")) +
-  scale_colour_manual(values=c("Baseline"="steelblue","Schools closed"="#d73027"), name=NULL) +
+  scale_x_continuous(breaks=1:10,
+                     labels=c("1\n(most\ndeprived)",2:9,"10\n(least\ndeprived)")) +
+  scale_colour_manual(values=c("Baseline"="steelblue","Schools closed"="#d73027"),
+                      name=NULL) +
   labs(title="Cumulative hospital admissions per 1,000: baseline vs school closure",
        subtitle="By IMD deprivation decile \u2014 \u03b2 fixed at 0.031",
        x="IMD deprivation decile", y="Cumulative admissions per 1,000 population",
@@ -376,9 +376,12 @@ cat("Plot 3: % reduction by decile...\n")
 p3 <- decile_sc_summary %>%
   ggplot(aes(x=imd_decile, y=adm_pct_red_mean)) +
   geom_col(fill="#d73027", alpha=0.85, width=0.65) +
-  geom_text(aes(label=paste0(adm_pct_red_mean,"%")), vjust=-0.4, size=3.2, colour="#333333") +
-  scale_x_continuous(breaks=1:10, labels=c("1\n(most\ndeprived)",2:9,"10\n(least\ndeprived)")) +
-  scale_y_continuous(expand=expansion(mult=c(0,0.12)), labels=function(x) paste0(x,"%")) +
+  geom_text(aes(label=paste0(adm_pct_red_mean,"%")),
+            vjust=-0.4, size=3.2, colour="#333333") +
+  scale_x_continuous(breaks=1:10,
+                     labels=c("1\n(most\ndeprived)",2:9,"10\n(least\ndeprived)")) +
+  scale_y_continuous(expand=expansion(mult=c(0,0.12)),
+                     labels=function(x) paste0(x,"%")) +
   labs(title="Reduction in hospital admissions from school closure by IMD decile",
        subtitle="Mean % reduction across age groups \u2014 \u03b2 fixed at 0.031",
        x="IMD deprivation decile", y="Reduction in cumulative admissions (%)",
@@ -396,17 +399,20 @@ age_sc_summary <- sc_results %>%
   summarise(adm_pct_red_mean=mean(adm_pct_red), .groups="drop") %>%
   mutate(age_group=factor(age_group, levels=age_labels))
 
-p4 <- ggplot(age_sc_summary, aes(x=adm_pct_red_mean, y=reorder(age_group, age_idx))) +
+p4 <- ggplot(age_sc_summary, aes(x=adm_pct_red_mean,
+                                 y=reorder(age_group, age_idx))) +
   geom_col(fill="#4393c3", alpha=0.85) +
   geom_text(aes(label=paste0(round(adm_pct_red_mean,1),"%")),
             hjust=-0.1, size=2.8, colour="#333333") +
-  scale_x_continuous(expand=expansion(mult=c(0,0.15)), labels=function(x) paste0(x,"%")) +
+  scale_x_continuous(expand=expansion(mult=c(0,0.15)),
+                     labels=function(x) paste0(x,"%")) +
   labs(title="School closure: reduction in admissions by age group",
        subtitle="National average across all IMD deciles \u2014 \u03b2 fixed at 0.031",
        x="Reduction in cumulative admissions (%)", y="Age group",
        caption=sc_caption) +
   theme_pub +
-  theme(panel.grid.major.y=element_blank(), panel.grid.major.x=element_line(colour="#eeeeee"))
+  theme(panel.grid.major.y=element_blank(),
+        panel.grid.major.x=element_line(colour="#eeeeee"))
 
 ggsave("output/plots/school_closure/17_fig4_reduction_by_age.png",
        p4, width=11, height=7, dpi=200)
@@ -422,19 +428,22 @@ p5_facet <- region_sc_compare %>%
   filter(cell_pop >= 10000) %>%
   pivot_longer(cols=c(adm_base,adm_closed),
                names_to="scenario", values_to="adm_per1000") %>%
-  mutate(scenario=recode(scenario,"adm_base"="Baseline","adm_closed"="Schools closed"),
+  mutate(scenario=recode(scenario,"adm_base"="Baseline",
+                         "adm_closed"="Schools closed"),
          region_short=str_remove(itl1_name," \\(England\\)")) %>%
   ggplot(aes(x=factor(lad_imd_decile), y=adm_per1000,
              colour=scenario, group=scenario)) +
   geom_line(linewidth=0.9, alpha=0.85) + geom_point(size=1.5) +
   facet_wrap(~ region_short, nrow=3) +
-  scale_colour_manual(values=c("Baseline"="steelblue","Schools closed"="#d73027"), name=NULL) +
+  scale_colour_manual(values=c("Baseline"="steelblue","Schools closed"="#d73027"),
+                      name=NULL) +
   scale_x_discrete(labels=c("1","","","","5","","","","","10")) +
   labs(title="School closure effect on admissions by ITL1 region and IMD decile",
        subtitle="Blue = baseline, red = schools closed \u2014 \u03b2 fixed at 0.031",
        x="IMD deprivation decile (1 = most deprived)",
        y="Cumulative admissions per 1,000", caption=sc_caption) +
-  theme_pub + theme(strip.text=element_text(face="bold", size=8.5), legend.position="top")
+  theme_pub +
+  theme(strip.text=element_text(face="bold", size=8.5), legend.position="top")
 
 ggsave("output/plots/school_closure/17_fig5_region_decile_facet.png",
        p5_facet, width=16, height=10, dpi=200)
@@ -445,14 +454,14 @@ print(p5_facet)
 cat("Plot 6: Avoided admissions by ITL1 region...\n")
 region_avoided <- region_sc_compare %>%
   left_join(region_total, by="itl1_name") %>%
-  mutate(abs_base=adm_base/1000*total_pop,
-         abs_closed=adm_closed/1000*total_pop,
-         abs_avoided=abs_base-abs_closed) %>%
+  mutate(abs_base    = adm_base   / 1000 * total_pop,
+         abs_closed  = adm_closed / 1000 * total_pop,
+         abs_avoided = abs_base - abs_closed) %>%
   group_by(itl1_name) %>%
-  summarise(total_avoided=sum(abs_avoided, na.rm=TRUE),
-            total_base   =sum(abs_base,    na.rm=TRUE),
-            pct_red      =total_avoided/total_base*100,
-            region_short =first(str_remove(itl1_name," \\(England\\)")),
+  summarise(total_avoided = sum(abs_avoided, na.rm=TRUE),
+            total_base    = sum(abs_base,    na.rm=TRUE),
+            pct_red       = total_avoided/total_base*100,
+            region_short  = first(str_remove(itl1_name," \\(England\\)")),
             .groups="drop")
 
 p6 <- ggplot(region_avoided,
