@@ -16,9 +16,8 @@
 #   Not identifiable separately from beta in a single-wave
 #   deterministic ODE model. Fixed at 1e-4 (~1 case per 10,000).
 #
-# pop_size: urban population only (matches model assumption urban=TRUE).
-#   Total population inflates predictions for deciles 3-8 where
-#   urban fraction drops to 73-85%.
+# pop_size: blended urban/rural population (consistent with
+#   proportion vector and contact matrices in script 09).
 #
 # Data window:
 #   obs_data from 2020-07-27, filtered to autumn/winter wave 1.
@@ -42,11 +41,10 @@ if (!exists("age_seird_hosp")) {
   rm(SKIP09_RUN)
 }
 stopifnot(exists("age_seird_hosp"))
+stopifnot(exists("get_blended_inputs"))
 cat("odin2 model loaded: age_seird_hosp\n")
 
 # State indices in dust2 output (170 states: 10 compartments x 17 ages)
-# Order: S[1:17], E[18:34], Ip[35:51], Ic[52:68], Is[69:85],
-#        HD[86:102], HR[103:119], D[120:136], R[137:153], Adm[154:170]
 adm_idx <- 154:170
 s_idx   <- 1:17
 
@@ -87,8 +85,8 @@ if (n_wave1_weeks < 8) {
        " weeks -- check smoothing or set first_wave_end manually.")
 }
 
-# Run odin2 model for one decile
-run_epidemic_fit <- function(imd_decile, beta, I0_frac, urban = TRUE) {
+# Run odin2 model for one decile using blended population
+run_epidemic_fit <- function(imd_decile, beta, I0_frac) {
   
   contact <- as.matrix(read.csv(
     paste0("data/parameters/contact_matrix_imd", imd_decile, ".csv"),
@@ -99,11 +97,8 @@ run_epidemic_fit <- function(imd_decile, beta, I0_frac, urban = TRUE) {
   h_a     <- h_mu$h_a
   mu_ca_h <- h_mu$mu_ca_h
   
-  proportion <- rural_age %>%
-    filter(IMD == imd_decile,
-           rural == if (urban) "Urban" else "Rural") %>%
-    arrange(Age) %>%
-    pull(Proportion)
+  blended    <- get_blended_inputs(imd_decile)
+  proportion <- blended$proportion
   
   S0    <- proportion
   S0[8] <- S0[8] - I0_frac
@@ -133,7 +128,7 @@ run_epidemic_fit <- function(imd_decile, beta, I0_frac, urban = TRUE) {
 }
 
 # Negative binomial log-likelihood
-# pop_size: URBAN only -- matches model assumption (urban=TRUE)
+# pop_size: blended urban/rural population
 run_log_likelihood <- function(beta, I0_frac, size,
                                imd_decile, obs_weekly,
                                n_weeks, pop_size) {
@@ -163,10 +158,8 @@ obs_d1_w1 <- obs_data_wave1 %>%
 
 stopifnot("No wave 1 data for decile 1" = nrow(obs_d1_w1) > 0)
 
-pop_size_d1 <- rural_age %>%
-  filter(IMD == 1, rural == "Urban") %>%
-  summarise(pop = sum(Population)) %>%
-  pull(pop)
+# Blended population for decile 1
+pop_size_d1 <- get_blended_inputs(1)$pop_size
 
 check <- run_epidemic_fit(imd_decile = 1, beta = 0.06, I0_frac = 1e-4)
 stopifnot(all(is.finite(check$cum_admissions)))
@@ -209,7 +202,7 @@ legend("topright", legend = c("Observed","Predicted"),
        col = c("black","red"), lty = 1)
 
 # monty MCMC fitting function
-# pop_size: URBAN only
+# pop_size: blended urban/rural population per decile
 fit_decile <- function(imd_decile, n_samples = 2000, n_chains = 3) {
   
   cat("=== Fitting IMD decile", imd_decile, "===\n")
@@ -226,10 +219,7 @@ fit_decile <- function(imd_decile, n_samples = 2000, n_chains = 3) {
   obs_weekly <- obs_d$obs_admissions
   n_weeks    <- nrow(obs_d)
   
-  pop_size <- rural_age %>%
-    filter(IMD == imd_decile, rural == "Urban") %>%
-    summarise(pop = sum(Population)) %>%
-    pull(pop)
+  pop_size <- get_blended_inputs(imd_decile)$pop_size
   
   ll_fn <- function(log_beta, log_size) {
     run_log_likelihood(
@@ -311,10 +301,7 @@ for (d in 1:10) {
     filter(lad_imd_decile == d) %>%
     arrange(epiweek)
   
-  pop_size <- rural_age %>%
-    filter(IMD == d, rural == "Urban") %>%
-    summarise(pop = sum(Population)) %>%
-    pull(pop)
+  pop_size <- get_blended_inputs(d)$pop_size
   
   out       <- run_epidemic_fit(imd_decile = d, beta = beta_post, I0_frac = 1e-4)
   daily_adm <- c(0, diff(out$cum_admissions)) * pop_size

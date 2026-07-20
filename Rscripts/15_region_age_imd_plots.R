@@ -37,6 +37,8 @@ if (!exists("age_labels")) {
 if (!exists("run_epidemic_fit_age")) {
   source("Rscripts/14_age_imd_gradient_plots.R")
 }
+stopifnot(exists("get_blended_inputs"))
+stopifnot(exists("run_epidemic_fit_age"))
 
 if (!exists("beta_posterior")) {
   burnin <- 500

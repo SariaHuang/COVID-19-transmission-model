@@ -31,6 +31,7 @@ if (!exists("age_seird_hosp")) {
   rm(SKIP09_RUN)
 }
 stopifnot(exists("age_seird_hosp"))
+stopifnot(exists("get_blended_inputs"))
 cat("odin2 model loaded.\n")
 
 age_labels <- c("Under 1","1 to 4","5 to 9","10 to 14","15 to 19",
@@ -40,15 +41,14 @@ age_labels <- c("Under 1","1 to 4","5 to 9","10 to 14","15 to 19",
 
 dir.create("output/plots", recursive = TRUE, showWarnings = FALSE)
 
-# State indices in dust2 output (170 states: 10 compartments x 17 ages)
-# S[1:17], E[18:34], Ip[35:51], Ic[52:68], Is[69:85],
-# HD[86:102], HR[103:119], D[120:136], R[137:153], Adm[154:170]
+# State indices in dust2 output
 adm_idx <- 154:170
 d_idx   <- 120:136
 
 # Run odin2 model, returning age-specific cumulative admissions and deaths
-run_epidemic_fit_age <- function(imd_decile, beta, I0_frac = 1e-4,
-                                 urban = TRUE) {
+# Uses blended population (consistent with script 09 and 13)
+run_epidemic_fit_age <- function(imd_decile, beta, I0_frac = 1e-4) {
+  
   contact <- as.matrix(read.csv(
     paste0("data/parameters/contact_matrix_imd", imd_decile, ".csv"),
     header = FALSE
@@ -58,17 +58,9 @@ run_epidemic_fit_age <- function(imd_decile, beta, I0_frac = 1e-4,
   h_a     <- h_mu$h_a
   mu_ca_h <- h_mu$mu_ca_h
   
-  proportion <- rural_age %>%
-    filter(IMD == imd_decile,
-           rural == if (urban) "Urban" else "Rural") %>%
-    arrange(Age) %>%
-    pull(Proportion)
-  
-  pop_by_age <- rural_age %>%
-    filter(IMD == imd_decile,
-           rural == if (urban) "Urban" else "Rural") %>%
-    arrange(Age) %>%
-    pull(Population)
+  blended    <- get_blended_inputs(imd_decile)
+  proportion <- blended$proportion
+  pop_by_age <- proportion * blended$pop_size
   
   S0    <- proportion
   S0[8] <- S0[8] - I0_frac
@@ -89,16 +81,13 @@ run_epidemic_fit_age <- function(imd_decile, beta, I0_frac = 1e-4,
   dust2::dust_system_set_state_initial(sys)
   out <- dust2::dust_system_simulate(sys, seq(0, 365, by = 1))
   
-  # Extract age-specific Adm and D from dust2 output
-  # out[adm_idx[a], ] = cumulative admissions for age group a
-  # out[d_idx[a], ]   = cumulative deaths for age group a
   map_dfr(seq_along(age_labels), function(a) {
     data.frame(
       day               = 0:365,
       imd_decile        = imd_decile,
       age_group         = age_labels[a],
       age_idx           = a,
-      pop_urban         = pop_by_age[a],
+      pop_blended       = pop_by_age[a],
       cum_adm_per1000   = out[adm_idx[a], ] * 1000,
       cum_death_per1000 = out[d_idx[a],   ] * 1000
     )
@@ -229,8 +218,7 @@ p3 <- ggplot(gradient_df,
   scale_x_continuous(breaks = 1:10,
                      labels = c("1\n(most\ndeprived)", 2:9,
                                 "10\n(least\ndeprived)")) +
-  scale_colour_viridis_d(option = "plasma", name = "Age group",
-                         direction = -1) +
+  scale_colour_viridis_d(option = "plasma", name = "Age group", direction = -1) +
   scale_alpha_identity() +
   scale_linewidth_identity() +
   labs(
@@ -263,8 +251,7 @@ p4 <- ggplot(gradient_df,
   scale_x_continuous(breaks = 1:10,
                      labels = c("1\n(most\ndeprived)", 2:9,
                                 "10\n(least\ndeprived)")) +
-  scale_colour_viridis_d(option = "inferno", name = "Age group",
-                         direction = -1) +
+  scale_colour_viridis_d(option = "inferno", name = "Age group", direction = -1) +
   scale_alpha_identity() +
   scale_linewidth_identity() +
   labs(
@@ -307,8 +294,7 @@ p5 <- all_age_results %>%
   geom_line(linewidth = 0.6, alpha = 0.85) +
   facet_wrap(~ decile_lab, nrow = 2) +
   coord_cartesian(ylim = c(0, NA)) +
-  scale_colour_viridis_d(option = "plasma", name = "Age group",
-                         direction = -1) +
+  scale_colour_viridis_d(option = "plasma", name = "Age group", direction = -1) +
   labs(
     title    = "Age-stratified daily hospital admissions by IMD deprivation decile",
     subtitle = "Per 1,000 population — fitted model, posterior median \u03b2",
@@ -318,12 +304,12 @@ p5 <- all_age_results %>%
   ) +
   theme_minimal(base_size = 10) +
   theme(
-    plot.title       = element_text(face = "bold", size = 12),
-    plot.subtitle    = element_text(size = 9, colour = "#555555"),
-    strip.text       = element_text(face = "bold", size = 8),
-    legend.text      = element_text(size = 7),
+    plot.title        = element_text(face = "bold", size = 12),
+    plot.subtitle     = element_text(size = 9, colour = "#555555"),
+    strip.text        = element_text(face = "bold", size = 8),
+    legend.text       = element_text(size = 7),
     legend.key.height = unit(0.35, "cm"),
-    panel.grid.minor = element_blank()
+    panel.grid.minor  = element_blank()
   )
 
 ggsave("output/plots/14_age_curves_by_decile.png", p5,
@@ -342,5 +328,4 @@ summary_table <- final_day %>%
 print(summary_table, n = 10)
 
 write_csv(summary_table, "output/plots/14_summary_burden_by_decile.csv")
-
 cat("\nAll outputs saved to output/plots/\n")

@@ -5,16 +5,22 @@
 #          extending Goodfellow et al. (2024).
 #          Runs one epidemic per IMD deprivation decile.
 #
+# Population blending:
+#   proportion vector and pop_size use urban/rural blended
+#   population, weighted by each decile's observed urban share
+#   (w_urban from urban_share_by_decile.csv). This is consistent
+#   with the blended contact matrices used throughout.
+#
 # Inputs:
 #   data/parameters/pi_matrix.csv
 #   data/parameters/h_mu_by_age.csv
 #   data/parameters/rural_age.csv
 #   data/parameters/gamma_hd_hr_by_age.csv
+#   data/parameters/urban_share_by_decile.csv
 #   data/parameters/contact_matrix_imd{1-10}.csv
 #
 # Output:
 #   output/imd_hospital_gradient_odin.png
-
 # ==============================================================
 
 library(odin2)
@@ -29,11 +35,12 @@ age_levels <- c("Under 1","1 to 4","5 to 9","10 to 14","15 to 19",
                 "70 to 74","75+")
 
 # Load parameters
-pi_matrix <- read_csv("data/parameters/pi_matrix.csv", show_col_types = FALSE)
-h_mu      <- read_csv("data/parameters/h_mu_by_age.csv", show_col_types = FALSE)
-rural_age <- read_csv("data/parameters/rural_age.csv", show_col_types = FALSE) %>%
+pi_matrix    <- read_csv("data/parameters/pi_matrix.csv", show_col_types = FALSE)
+h_mu         <- read_csv("data/parameters/h_mu_by_age.csv", show_col_types = FALSE)
+rural_age    <- read_csv("data/parameters/rural_age.csv", show_col_types = FALSE) %>%
   mutate(Age = factor(Age, levels = age_levels))
-
+urban_share  <- read_csv("data/parameters/urban_share_by_decile.csv",
+                         show_col_types = FALSE)
 gamma_hd_hr  <- read_csv("data/parameters/gamma_hd_hr_by_age.csv",
                          show_col_types = FALSE)
 gamma_hd_vec <- gamma_hd_hr$gamma_hd
@@ -41,21 +48,42 @@ gamma_hr_vec <- gamma_hd_hr$gamma_hr
 cat("gamma_hd range:", round(range(gamma_hd_vec), 4), "\n")
 cat("gamma_hr range:", round(range(gamma_hr_vec), 4), "\n")
 
-# odin2 model
+# Blended population inputs per IMD decile
+# proportion and pop_size use w_urban weighted mix of urban + rural,
+# consistent with the blended contact matrices from script 07/10.
+get_blended_inputs <- function(imd_decile) {
+  w <- urban_share$w_urban[urban_share$IMD == imd_decile]
+  
+  pop_urban <- rural_age %>%
+    filter(IMD == imd_decile, rural == "Urban") %>%
+    arrange(Age) %>% pull(Population)
+  
+  pop_rural <- rural_age %>%
+    filter(IMD == imd_decile, rural == "Rural") %>%
+    arrange(Age) %>% pull(Population)
+  
+  pop_blended <- w * pop_urban + (1 - w) * pop_rural
+  
+  list(
+    proportion = pop_blended / sum(pop_blended),
+    pop_size   = sum(pop_blended)
+  )
+}
+
+# odin2 model definition
 # States (each length 17, ordered as per initial() declarations):
-#   S, E, Ip, Ic, Is, HD, HR, D, R, Adm
-# rec_c is passed as duration (days); used as 1/rec_c in ODEs
-# rec_s is passed as rate (1/5 per day)
+#   S[1:17], E[18:34], Ip[35:51], Ic[52:68], Is[69:85],
+#   HD[86:102], HR[103:119], D[120:136], R[137:153], Adm[154:170]
 age_seird_hosp <- odin2::odin({
   
   # Force of infection
-  inf_weighted[]  <- (Ip[i] + Ic[i] + xi * Is[i]) / proportion[i]
+  inf_weighted[]    <- (Ip[i] + Ic[i] + xi * Is[i]) / proportion[i]
   dim(inf_weighted) <- 17
   
-  weighted_contact[,] <- contact[i, j] * inf_weighted[j]
+  weighted_contact[,]   <- contact[i, j] * inf_weighted[j]
   dim(weighted_contact) <- c(17, 17)
   
-  lambda[] <- susc * sum(weighted_contact[i,])
+  lambda[]    <- susc * sum(weighted_contact[i,])
   dim(lambda) <- 17
   
   # ODEs
@@ -123,8 +151,8 @@ age_seird_hosp <- odin2::odin({
   xi    <- parameter(0.5)
 })
 
-# Run for one IMD decile
-run_epidemic_odin <- function(imd_decile, urban = TRUE) {
+# Run for one IMD decile using blended population
+run_epidemic_odin <- function(imd_decile) {
   
   contact <- as.matrix(read.csv(
     paste0("data/parameters/contact_matrix_imd", imd_decile, ".csv"),
@@ -135,11 +163,8 @@ run_epidemic_odin <- function(imd_decile, urban = TRUE) {
   h_a     <- h_mu$h_a
   mu_ca_h <- h_mu$mu_ca_h
   
-  proportion <- rural_age %>%
-    filter(IMD == imd_decile,
-           rural == if (urban) "Urban" else "Rural") %>%
-    arrange(Age) %>%
-    pull(Proportion)
+  blended    <- get_blended_inputs(imd_decile)
+  proportion <- blended$proportion
   
   S0    <- proportion
   S0[8] <- S0[8] - 1e-3
@@ -161,18 +186,14 @@ run_epidemic_odin <- function(imd_decile, urban = TRUE) {
   times <- seq(0, 365, by = 1)
   out   <- dust2::dust_system_simulate(sys, times)
   
-  # States ordered as initial() declarations:
-  # S[1:17]=1:17, E=18:34, Ip=35:51, Ic=52:68, Is=69:85,
-  # HD=86:102, HR=103:119, D=120:136, R=137:153, Adm=154:170
-  n_age   <- 17
-  s_idx   <- 1:n_age
-  adm_idx <- (9 * n_age + 1):(10 * n_age)
+  s_idx   <- 1:17
+  adm_idx <- 154:170
   
   data.frame(
     day            = times,
     imd_decile     = imd_decile,
     cum_admissions = colSums(out[adm_idx, ]),
-    S_remaining    = colSums(out[s_idx, ])
+    S_remaining    = colSums(out[s_idx,   ])
   ) %>%
     mutate(
       new_adm_per1000 = c(0, diff(cum_admissions)) * 1000,
@@ -182,7 +203,7 @@ run_epidemic_odin <- function(imd_decile, urban = TRUE) {
 
 if (!exists("SKIP09_RUN") || !isTRUE(SKIP09_RUN)) {
   
-  cat("Running odin2 model for 10 IMD deciles...\n")
+  cat("Running odin2 model for 10 IMD deciles (blended population)...\n")
   results_df <- bind_rows(lapply(1:10, function(d) {
     cat("  IMD decile", d, "\n")
     run_epidemic_odin(imd_decile = d)
@@ -214,7 +235,7 @@ if (!exists("SKIP09_RUN") || !isTRUE(SKIP09_RUN)) {
                         name = "IMD decile\n(1 = most\ndeprived)") +
     labs(
       title    = "Modelled daily hospital admissions by IMD deprivation decile",
-      subtitle = "Age-stratified SEIRD + hospital model (odin2), England (urban)",
+      subtitle = "Age-stratified SEIRD + hospital model (odin2), England (blended population)",
       x        = "Day of epidemic",
       y        = "New hospital admissions per 1,000 population",
       caption  = "Parameters: Goodfellow et al. (2024) + Knock et al. (2021)."
