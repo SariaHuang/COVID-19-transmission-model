@@ -147,6 +147,61 @@ base_fd <- run_all_deciles(pi_a_override = NULL,     label = "Baseline")
 cf1_fd  <- run_all_deciles(pi_a_override = pi_a_d10, label = "CF1 (decile 10 pi_a)")
 cf2_fd  <- run_all_deciles(pi_a_override = pi_a_d5,  label = "CF2 (decile 5 pi_a)")
 
+# ---------------------------------------------------------------
+# Posterior uncertainty: 500 samples from joint posterior of beta
+# ---------------------------------------------------------------
+cat("\nDrawing 500 posterior samples for 95% CrI on attributable fraction...\n")
+burnin    <- 500
+n_samples <- 500
+
+# Draw 500 beta samples from decile 1 posterior (consistent with
+# sensitivity analysis which fixes beta = decile 1 posterior median)
+fit_d1   <- readRDS("output/fitting/fitted_samples_imd1.rds")
+all_s_d1 <- c(exp(fit_d1$pars[1, (burnin+1):2000, 1]),
+              exp(fit_d1$pars[1, (burnin+1):2000, 2]),
+              exp(fit_d1$pars[1, (burnin+1):2000, 3]))
+beta_samples_d1 <- sample(all_s_d1, n_samples, replace = FALSE)
+
+af_samples <- matrix(NA_real_, nrow = n_samples, ncol = 9)
+
+for (s in seq_len(n_samples)) {
+  if (s %% 50 == 0) cat("  Sample", s, "/", n_samples, "\n")
+  
+  # Apply the same beta to all deciles, consistent with fixed-beta
+  # sensitivity analysis (beta = decile 1 posterior median)
+  beta_s <- rep(beta_samples_d1[s], 10)
+  
+  base_s <- map_dfr(1:10, function(d)
+    run_epidemic_fit_age_cf(d, beta_s[d], pi_a_override = NULL)) %>%
+    group_by(imd_decile, age_group, age_idx, pop_blended) %>%
+    slice_max(day, n = 1) %>% ungroup()
+  
+  cf1_s <- map_dfr(1:10, function(d)
+    run_epidemic_fit_age_cf(d, beta_s[d], pi_a_override = pi_a_d10)) %>%
+    group_by(imd_decile, age_group, age_idx) %>%
+    slice_max(day, n = 1) %>% ungroup()
+  
+  res_s <- base_s %>%
+    rename(adm_base = cum_adm_per1000) %>%
+    left_join(cf1_s %>% select(imd_decile, age_group, age_idx,
+                               adm_cf = cum_adm_per1000),
+              by = c("imd_decile","age_group","age_idx")) %>%
+    mutate(af = pmax((adm_base - adm_cf) / adm_base * 100, 0))
+  
+  for (d in 1:9) {
+    af_samples[s, d] <- mean(res_s$af[res_s$imd_decile == d], na.rm = TRUE)
+  }
+}
+
+cri_df <- data.frame(
+  imd_decile = 1:9,
+  af_lower   = apply(af_samples, 2, quantile, 0.025, na.rm = TRUE),
+  af_upper   = apply(af_samples, 2, quantile, 0.975, na.rm = TRUE),
+  scenario   = "CF1: decile 10 \u03c0\u2090"
+)
+
+cat("  CrI computation complete.\n\n")
+
 make_results <- function(base, cf, cf_label) {
   base %>%
     rename(adm_base = cum_adm_per1000, death_base = cum_death_per1000) %>%
@@ -194,20 +249,19 @@ results_all %>%
   ) %>%
   print()
 
-theme_pub <- theme_minimal(base_size = 11) +
+theme_pub <- theme_minimal(base_size = 13) +
   theme(
-    plot.title       = element_text(face = "bold", size = 12,
+    plot.title       = element_text(face = "bold", size = 14,
                                     margin = margin(b = 4)),
-    plot.subtitle    = element_text(size = 9, colour = "#444444",
+    plot.subtitle    = element_text(size = 11, colour = "#444444",
                                     margin = margin(b = 8)),
-    plot.caption     = element_text(size = 7.5, colour = "#888888",
-                                    hjust = 0, margin = margin(t = 8)),
-    axis.title       = element_text(size = 9.5),
-    axis.text        = element_text(size = 8.5, colour = "#333333"),
+    plot.caption     = element_blank(),
+    axis.title       = element_text(size = 12),
+    axis.text        = element_text(size = 11, colour = "#333333"),
     panel.grid.minor = element_blank(),
     panel.grid.major = element_line(colour = "#eeeeee"),
-    legend.title     = element_text(size = 8.5, face = "bold"),
-    legend.text      = element_text(size = 8),
+    legend.title     = element_text(size = 11, face = "bold"),
+    legend.text      = element_text(size = 10),
     plot.margin      = margin(12, 12, 8, 12)
   )
 
@@ -230,12 +284,24 @@ fig1_data <- decile_summary %>%
                            levels = c("CF1: decile 10 \u03c0\u2090",
                                       "CF2: decile 5 \u03c0\u2090")))
 
+fig1_data_cf1 <- fig1_data %>%
+  filter(scenario == "CF1: decile 10 \u03c0\u2090") %>%
+  left_join(cri_df %>% select(imd_decile, af_lower, af_upper),
+            by = "imd_decile")
+
 p1 <- ggplot(fig1_data,
              aes(x = imd_decile, y = adm_attr_frac_mean, fill = scenario)) +
   geom_col(position = position_dodge(width = 0.7), width = 0.6, alpha = 0.9) +
+  geom_errorbar(
+    data = fig1_data_cf1,
+    aes(ymin = af_lower, ymax = af_upper, x = imd_decile),
+    inherit.aes = FALSE,
+    width = 0.25, linewidth = 0.7, colour = "#1a3a5c",
+    position = position_nudge(x = -0.175)
+  ) +
   geom_text(aes(label = paste0(round(adm_attr_frac_mean, 1), "%")),
             position = position_dodge(width = 0.7),
-            vjust = -0.4, size = 2.8, colour = "#333333") +
+            vjust = -0.4, size = 3.5, colour = "#333333") +
   scale_x_continuous(breaks = 1:10,
                      labels = c("1\n(most\ndeprived)", 2:9,
                                 "10\n(least\ndeprived)")) +
@@ -249,10 +315,10 @@ p1 <- ggplot(fig1_data,
   labs(
     title    = "Proportion of COVID-19 admissions attributable to health inequality",
     subtitle = paste0("CF1: all deciles assigned decile 10 \u03c0\u2090 | ",
-                      "CF2: all deciles assigned decile 5 \u03c0\u2090"),
+                      "CF2: all deciles assigned decile 5 \u03c0\u2090. ",
+                      "Error bars = 95% CrI (CF1 only, 500 posterior samples)."),
     x        = "IMD deprivation decile",
-    y        = "Attributable fraction (%)",
-    caption  = cf_caption
+    y        = "Attributable fraction (%)"
   ) +
   theme_pub + theme(legend.position = "top")
 
@@ -338,8 +404,8 @@ p2 <- ggplot(region_compare,
                  colour = scenario,
                  group  = interaction(region_short, scenario),
                  linetype = scenario)) +
-  geom_line(linewidth = 0.85, alpha = 0.85) +
-  geom_point(size = 1.4) +
+  geom_line(linewidth = 1.2, alpha = 0.9) +
+  geom_point(size = 2.0) +
   facet_wrap(~ region_short, nrow = 3) +
   scale_colour_manual(
     values = c("Baseline"                    = "#2166ac",
@@ -356,13 +422,14 @@ p2 <- ggplot(region_compare,
     title    = "COVID-19 admissions: baseline vs counterfactuals by ITL1 region",
     subtitle = "CF1 = decile 10 \u03c0\u2090 (red solid) | CF2 = decile 5 \u03c0\u2090 (orange dashed)",
     x        = "IMD deprivation decile",
-    y        = "Cumulative admissions per 1,000",
-    caption  = cf_caption
+    y        = "Cumulative admissions per 1,000"
   ) +
   theme_pub +
-  theme(strip.text      = element_text(face="bold", size=8.5),
+  theme(strip.text      = element_text(face = "bold", size = 12),
         legend.position = "top",
-        axis.text.x     = element_text(size=7))
+        legend.text     = element_text(size = 11),
+        axis.text.x     = element_text(size = 11),
+        axis.text.y     = element_text(size = 11))
 
 ggsave("output/plots/counterfactual/16_fig2_burden_comparison_region.png",
        p2, width = 14, height = 10, dpi = 200)
@@ -401,8 +468,7 @@ p3 <- ggplot(age_summary,
     title    = "Avoided hospital admissions by age group",
     subtitle = "CF1 (decile 10 \u03c0\u2090) vs CF2 (decile 5 \u03c0\u2090)",
     x        = "Avoided admissions (absolute count, blended population)",
-    y        = "Age group",
-    caption  = cf_caption
+    y        = "Age group"
   ) +
   theme_pub +
   theme(panel.grid.major.y = element_blank(),

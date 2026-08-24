@@ -118,14 +118,42 @@ compute_region_burden <- function(beta_values) {
     mutate(abs_adm   = (cum_adm_per1000   / 1000) * population,
            abs_death = (cum_death_per1000 / 1000) * population)
   
+  # Crude rates
   region_decile <- burden %>%
     group_by(itl1_name, lad_imd_decile) %>%
     summarise(abs_adm   = sum(abs_adm,   na.rm = TRUE),
               abs_death = sum(abs_death, na.rm = TRUE),
               .groups = "drop") %>%
     left_join(region_total_pop, by = "itl1_name") %>%
-    mutate(adm_per1000   = abs_adm   / total_pop * 1000,
-           death_per1000 = abs_death / total_pop * 1000)
+    mutate(adm_per1000_crude   = abs_adm   / total_pop * 1000,
+           death_per1000_crude = abs_death / total_pop * 1000,
+           # keep old name for backward compat
+           adm_per1000         = adm_per1000_crude,
+           death_per1000       = death_per1000_crude)
+  
+  # Age-standardised rates (direct method, England 2020 standard population)
+  # Standard weights = national age distribution across all regions and deciles
+  standard_pop <- region_pop_clean %>%
+    group_by(age_band_model) %>%
+    summarise(std_pop = sum(population), .groups = "drop") %>%
+    mutate(std_weight = std_pop / sum(std_pop))
+  
+  region_decile_std <- burden %>%
+    left_join(standard_pop, by = "age_band_model") %>%
+    mutate(
+      adm_std_contrib   = (cum_adm_per1000   / 1000) * std_weight,
+      death_std_contrib = (cum_death_per1000 / 1000) * std_weight
+    ) %>%
+    group_by(itl1_name, lad_imd_decile) %>%
+    summarise(
+      adm_per1000_std   = sum(adm_std_contrib,   na.rm = TRUE) * 1000,
+      death_per1000_std = sum(death_std_contrib, na.rm = TRUE) * 1000,
+      .groups = "drop"
+    )
+  
+  # Merge crude + standardised
+  region_decile <- region_decile %>%
+    left_join(region_decile_std, by = c("itl1_name", "lad_imd_decile"))
   
   region_decile_age <- burden %>%
     left_join(region_total_pop, by = "itl1_name") %>%
@@ -172,24 +200,23 @@ age_band_order <- c("0-4","5-9","10-14","15-19","20-24","25-29",
                     "30-34","35-39","40-44","45-49","50-54","55-59",
                     "60-64","65-69","70-74","75+")
 
-theme_publication <- theme_minimal(base_size = 10) +
+theme_publication <- theme_minimal(base_size = 20) +
   theme(
-    plot.title       = element_text(face = "bold", size = 12,
+    plot.title       = element_text(face = "bold", size = 22,
                                     margin = margin(b = 4)),
-    plot.subtitle    = element_text(size = 8.5, colour = "#444444",
+    plot.subtitle    = element_text(size = 17, colour = "#444444",
                                     margin = margin(b = 8)),
-    plot.caption     = element_text(size = 7, colour = "#888888",
-                                    hjust = 0, margin = margin(t = 8)),
-    strip.text       = element_text(face = "bold", size = 8.5),
+    plot.caption     = element_blank(),
+    strip.text       = element_text(face = "bold", size = 18),
     strip.background = element_rect(fill = "#f5f5f5", colour = NA),
-    axis.text        = element_text(size = 7.5, colour = "#333333"),
-    axis.title       = element_text(size = 9),
-    legend.title     = element_text(size = 8, face = "bold"),
-    legend.text      = element_text(size = 7.5),
-    legend.key.height = unit(1.1, "cm"),
+    axis.text        = element_text(size = 17, colour = "#333333"),
+    axis.title       = element_text(size = 18),
+    legend.title     = element_text(size = 17, face = "bold"),
+    legend.text      = element_text(size = 16),
+    legend.key.height = unit(1.2, "cm"),
     panel.grid.minor = element_blank(),
     panel.grid.major = element_line(colour = "#eeeeee"),
-    plot.margin      = margin(12, 12, 8, 12)
+    plot.margin      = margin(14, 14, 10, 14)
   )
 
 # Plot function (called once per analysis)
@@ -218,8 +245,7 @@ make_plots <- function(results, file_prefix, title_tag) {
       title    = "Cumulative COVID-19 hospital admissions by IMD decile and ITL1 region",
       subtitle = title_tag,
       x        = "IMD deprivation decile",
-      y        = "Cumulative admissions per 1,000 population",
-      caption  = caption_txt
+      y        = "Cumulative admissions per 1,000 population"
     ) +
     theme_publication +
     theme(legend.position = "right",
@@ -242,8 +268,7 @@ make_plots <- function(results, file_prefix, title_tag) {
       title    = "Cumulative COVID-19 in-hospital deaths by IMD decile and ITL1 region",
       subtitle = title_tag,
       x        = "IMD deprivation decile",
-      y        = "Cumulative deaths per 1,000 population",
-      caption  = caption_txt
+      y        = "Cumulative deaths per 1,000 population"
     ) +
     theme_publication +
     theme(legend.position = "right",
@@ -277,8 +302,7 @@ make_plots <- function(results, file_prefix, title_tag) {
       title    = "Cumulative COVID-19 admissions per 1,000 by region, age and IMD decile",
       subtitle = title_tag,
       x        = "IMD decile (1 = most deprived)",
-      y        = "Age band",
-      caption  = caption_txt
+      y        = "Age band"
     ) +
     theme_publication +
     theme(axis.text.x      = element_text(size = 6.5),
@@ -313,8 +337,7 @@ make_plots <- function(results, file_prefix, title_tag) {
       title    = "Cumulative COVID-19 in-hospital deaths per 1,000 by region, age and IMD decile",
       subtitle = title_tag,
       x        = "IMD decile (1 = most deprived)",
-      y        = "Age band",
-      caption  = caption_txt
+      y        = "Age band"
     ) +
     theme_publication +
     theme(axis.text.x      = element_text(size = 6.5),
@@ -349,8 +372,7 @@ make_plots <- function(results, file_prefix, title_tag) {
       title    = "Cumulative COVID-19 hospital admissions per 1,000 by ITL1 region",
       subtitle = paste0("Stacked by IMD deprivation decile \u2014 ", title_tag),
       x        = "ITL1 Region",
-      y        = "Cumulative admissions per 1,000 population",
-      caption  = caption_txt
+      y        = "Cumulative admissions per 1,000 population"
     ) +
     theme_publication +
     theme(axis.text.x       = element_text(angle = 28, hjust = 1, size = 8.5),
@@ -359,8 +381,108 @@ make_plots <- function(results, file_prefix, title_tag) {
   ggsave(paste0("output/plots/region/", file_prefix, "_bar_stacked.png"),
          p5, width = 12, height = 7, dpi = 200)
   
+  # Plot 6: Age-standardised gradient admissions
+  p6 <- ggplot(rd, aes(x = lad_imd_decile, y = adm_per1000_std,
+                       colour = itl1_name, group = itl1_name)) +
+    geom_line(linewidth = 1.0, alpha = 0.9) +
+    geom_point(size = 2.0) +
+    scale_x_continuous(breaks = 1:10,
+                       labels = c("1\n(most\ndeprived)", 2:9,
+                                  "10\n(least\ndeprived)")) +
+    scale_colour_manual(values = region_colours, name = "ITL1 Region") +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.08))) +
+    labs(
+      title    = "Age-standardised COVID-19 hospital admissions by IMD decile and ITL1 region",
+      subtitle = paste0(title_tag,
+                        " \u2014 Direct standardisation, England 2020 standard population"),
+      x        = "IMD deprivation decile",
+      y        = "Age-standardised admissions per 1,000 population"
+    ) +
+    theme_publication +
+    theme(legend.position    = "right",
+          legend.key.height  = unit(0.5, "cm"))
+  
+  ggsave(paste0("output/plots/region/", file_prefix, "_gradient_adm_std.png"),
+         p6, width = 12, height = 6.5, dpi = 200)
+  
+  # Plot 7: Crude vs age-standardised comparison
+  rd_long <- rd %>%
+    select(itl1_name, lad_imd_decile,
+           Crude              = adm_per1000_crude,
+           `Age-standardised` = adm_per1000_std) %>%
+    pivot_longer(cols = c(Crude, `Age-standardised`),
+                 names_to = "Rate type", values_to = "adm_per1000") %>%
+    mutate(region_short = str_remove(itl1_name, " \\(England\\)"))
+  
+  p7 <- ggplot(rd_long,
+               aes(x = lad_imd_decile, y = adm_per1000,
+                   colour = `Rate type`, linetype = `Rate type`,
+                   group  = interaction(itl1_name, `Rate type`))) +
+    geom_line(linewidth = 1.2, alpha = 0.9) +
+    facet_wrap(~ region_short, nrow = 3) +
+    scale_colour_manual(values = c("Crude" = "#2166ac",
+                                   "Age-standardised" = "#d73027"),
+                        name = NULL) +
+    scale_linetype_manual(values = c("Crude" = "solid",
+                                     "Age-standardised" = "dashed"),
+                          name = NULL) +
+    scale_x_continuous(breaks = c(1, 5, 10),
+                       labels = c("1", "5", "10")) +
+    labs(
+      title    = "Crude vs age-standardised COVID-19 admissions by ITL1 region",
+      subtitle = paste0(title_tag,
+                        " \u2014 Blue solid = crude; red dashed = age-standardised"),
+      x        = "IMD deprivation decile",
+      y        = "Admissions per 1,000 population"
+    ) +
+    theme_publication +
+    theme(strip.text      = element_text(face = "bold", size = 18),
+          axis.text       = element_text(size = 17),
+          axis.title      = element_text(size = 18),
+          legend.text     = element_text(size = 17),
+          legend.position = "top",
+          legend.key.size = unit(1.8, "cm"))
+  
+  ggsave(paste0("output/plots/region/", file_prefix, "_crude_vs_std.png"),
+         p7, width = 16, height = 10, dpi = 200)
+  
+  # Plot 8: Age-standardised stacked bar
+  p8 <- rd %>%
+    mutate(
+      region_short = str_remove(itl1_name, " \\(England\\)"),
+      decile_f     = factor(lad_imd_decile,
+                            labels = paste0("Decile ", 1:10))
+    ) %>%
+    group_by(region_short) %>%
+    mutate(total_std = sum(adm_per1000_std)) %>%
+    ungroup() %>%
+    ggplot(aes(x = reorder(region_short, -total_std),
+               y = adm_per1000_std,
+               fill = factor(lad_imd_decile))) +
+    geom_col(position = "stack", width = 0.65) +
+    geom_text(aes(label = ifelse(adm_per1000_std > 0.02,
+                                 round(adm_per1000_std, 2), "")),
+              position = position_stack(vjust = 0.5),
+              size = 2.2, colour = "white", fontface = "bold") +
+    scale_fill_brewer(palette = "RdYlBu", direction = -1,
+                      name = "IMD decile\n(1 = most deprived)") +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+    labs(
+      title    = "Age-standardised COVID-19 admissions per 1,000 by ITL1 region",
+      subtitle = paste0("Stacked by IMD decile \u2014 ", title_tag,
+                        " \u2014 England 2020 standard population"),
+      x        = "ITL1 Region",
+      y        = "Age-standardised admissions per 1,000 population"
+    ) +
+    theme_publication +
+    theme(axis.text.x       = element_text(angle = 28, hjust = 1, size = 8.5),
+          legend.key.height = unit(0.45, "cm"))
+  
+  ggsave(paste0("output/plots/region/", file_prefix, "_bar_stacked_std.png"),
+         p8, width = 12, height = 7, dpi = 200)
+  
   write_csv(rd, paste0("output/plots/region/", file_prefix, "_summary.csv"))
-  cat("  Saved 5 plots + CSV with prefix:", file_prefix, "\n")
+  cat("  Saved 8 plots + CSV with prefix:", file_prefix, "\n")
 }
 
 # Generate all plots
@@ -381,3 +503,4 @@ make_plots(
 )
 
 cat("\nDone. All 10 plots saved to output/plots/region/\n")
+
