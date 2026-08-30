@@ -138,6 +138,39 @@ r0_results <- map_dfr(1:10, function(d) {
 cat("\n--- R0 results ---\n")
 print(r0_results)
 
+# Posterior uncertainty on R0 via 500 beta samples from decile 1 posterior
+cat("\nComputing R0 credible intervals (500 posterior samples)...\n")
+fit_d1_r0   <- readRDS("output/fitting/fitted_samples_imd1.rds")
+all_s_d1_r0 <- c(exp(fit_d1_r0$pars[1, 501:2000, 1]),
+                 exp(fit_d1_r0$pars[1, 501:2000, 2]),
+                 exp(fit_d1_r0$pars[1, 501:2000, 3]))
+beta_r0_samples <- sample(all_s_d1_r0, 500, replace = FALSE)
+
+r0_samp_base  <- matrix(NA_real_, nrow = 500, ncol = 10)
+r0_samp_close <- matrix(NA_real_, nrow = 500, ncol = 10)
+
+for (s in seq_len(500)) {
+  beta_s <- beta_r0_samples[s]
+  for (d in 1:10) {
+    pi_a_d  <- pi_matrix[[paste0("imd_", d)]]
+    M_base  <- as.matrix(read.csv(
+      paste0("data/parameters/contact_matrix_imd", d, ".csv"), header = FALSE))
+    M_close <- make_school_closure_matrix(d)
+    r0_samp_base[s, d]  <- compute_R0(M_base,  pi_a_d, beta_s)
+    r0_samp_close[s, d] <- compute_R0(M_close, pi_a_d, beta_s)
+  }
+}
+
+r0_cri <- data.frame(
+  imd_decile     = 1:10,
+  R0_base_lower  = apply(r0_samp_base,  2, quantile, 0.025),
+  R0_base_upper  = apply(r0_samp_base,  2, quantile, 0.975),
+  R0_close_lower = apply(r0_samp_close, 2, quantile, 0.025),
+  R0_close_upper = apply(r0_samp_close, 2, quantile, 0.975)
+)
+cat("R0 CrI complete.\n")
+print(round(r0_cri, 3))
+
 # Run odin2 model using blended population
 run_epidemic_school <- function(imd_decile, beta, school_closed = FALSE) {
   contact <- if (school_closed) make_school_closure_matrix(imd_decile) else
@@ -284,19 +317,18 @@ region_sc_compare <- left_join(
   mutate(region_short = str_remove(itl1_name," \\(England\\)"))
 
 # Shared theme and colours
-theme_pub <- theme_minimal(base_size=11) +
+theme_pub <- theme_minimal(base_size=20) +
   theme(
-    plot.title    = element_text(face="bold", size=12, margin=margin(b=4)),
-    plot.subtitle = element_text(size=9, colour="#444444", margin=margin(b=8)),
-    plot.caption  = element_text(size=7.5, colour="#888888",
-                                 hjust=0, margin=margin(t=8)),
-    axis.title    = element_text(size=9.5),
-    axis.text     = element_text(size=8.5, colour="#333333"),
+    plot.title    = element_text(face="bold", size=22, margin=margin(b=4)),
+    plot.subtitle = element_text(size=17, colour="#444444", margin=margin(b=8)),
+    plot.caption  = element_blank(),
+    axis.title    = element_text(size=18),
+    axis.text     = element_text(size=17, colour="#333333"),
     panel.grid.minor = element_blank(),
     panel.grid.major = element_line(colour="#eeeeee"),
-    legend.title  = element_text(size=8.5, face="bold"),
-    legend.text   = element_text(size=8),
-    plot.margin   = margin(12,12,8,12))
+    legend.title  = element_text(size=17, face="bold"),
+    legend.text   = element_text(size=16),
+    plot.margin   = margin(14,14,10,14))
 
 region_colours <- c(
   "East"                     = "#1b9e77",
@@ -316,8 +348,8 @@ sc_caption <- paste0(
   "median (0.031). Population: blended urban/rural per decile. ",
   "Model: age \u00d7 IMD SEIRD + hospital (odin2).")
 
-# Figure 1: R0
-cat("\nPlot 1: R0 by decile...\n")
+# Figure 1: R0 with 95% CrI ribbons
+cat("\nPlot 1: R0 by decile with 95% CrI...\n")
 fig1_data <- decile_sc_summary %>%
   select(imd_decile, R0_baseline, R0_closed) %>%
   pivot_longer(cols=c(R0_baseline,R0_closed),
@@ -325,20 +357,39 @@ fig1_data <- decile_sc_summary %>%
   mutate(scenario=recode(scenario,"R0_baseline"="Baseline",
                          "R0_closed"="Schools closed"))
 
-p1 <- ggplot(fig1_data, aes(x=imd_decile, y=R0, colour=scenario, group=scenario)) +
-  geom_line(linewidth=1.1) + geom_point(size=2.5) +
+p1 <- ggplot(fig1_data, aes(x=imd_decile, y=R0,
+                            colour=scenario, group=scenario)) +
+  geom_ribbon(data = r0_cri,
+              aes(x = imd_decile,
+                  ymin = R0_base_lower, ymax = R0_base_upper),
+              inherit.aes = FALSE,
+              fill = "steelblue", alpha = 0.15) +
+  geom_ribbon(data = r0_cri,
+              aes(x = imd_decile,
+                  ymin = R0_close_lower, ymax = R0_close_upper),
+              inherit.aes = FALSE,
+              fill = "#d73027", alpha = 0.15) +
+  geom_line(linewidth = 1.5) +
+  geom_point(size = 3.0) +
   geom_hline(yintercept=1, linetype="dashed", colour="#cc0000", alpha=0.6) +
-  annotate("text", x=0.7, y=1.05, label="R\u2080 = 1",
-           colour="#cc0000", size=3, hjust=0) +
+  annotate("text", x=0.7, y=1.03, label="R0 = 1",
+           colour="#cc0000", size=7, hjust=0) +
   scale_x_continuous(breaks=1:10,
-                     labels=c("1\n(most\ndeprived)",2:9,"10\n(least\ndeprived)")) +
-  scale_colour_manual(values=c("Baseline"="steelblue","Schools closed"="#d73027"),
+                     labels=c("1\n(most\ndeprived)",2:9,
+                              "10\n(least\ndeprived)")) +
+  scale_colour_manual(values=c("Baseline"="steelblue",
+                               "Schools closed"="#d73027"),
                       name=NULL) +
-  labs(title="Effect of school closure on R\u2080 by IMD deprivation decile",
-       subtitle="POLYMOD UK school contact fraction removed \u2014 \u03b2 fixed at 0.031",
-       x="IMD deprivation decile", y="Basic reproduction number (R\u2080)",
-       caption=sc_caption) +
-  theme_pub + theme(legend.position="top")
+  labs(title="Effect of school closure on R0 by IMD deprivation decile",
+       subtitle=paste0("Shaded bands = 95% CrI (500 posterior samples). ",
+                       "\u03b2 fixed at decile 1 posterior median."),
+       x="IMD deprivation decile",
+       y="Basic reproduction number (R0)") +
+  theme_pub +
+  theme(legend.position = "top",
+        legend.text     = element_text(size = 16),
+        axis.text       = element_text(size = 16),
+        axis.title      = element_text(size = 18))
 
 ggsave("output/plots/school_closure/17_fig1_R0_reduction.png",
        p1, width=11, height=6.5, dpi=200)
@@ -356,15 +407,14 @@ fig2_data <- decile_sc_summary %>%
 
 p2 <- ggplot(fig2_data, aes(x=imd_decile, y=adm_per1000,
                             colour=scenario, group=scenario)) +
-  geom_line(linewidth=1.1) + geom_point(size=2.5) +
+  geom_line(linewidth=1.5) + geom_point(size=3.0) +
   scale_x_continuous(breaks=1:10,
                      labels=c("1\n(most\ndeprived)",2:9,"10\n(least\ndeprived)")) +
   scale_colour_manual(values=c("Baseline"="steelblue","Schools closed"="#d73027"),
                       name=NULL) +
   labs(title="Cumulative hospital admissions per 1,000: baseline vs school closure",
        subtitle="By IMD deprivation decile \u2014 \u03b2 fixed at 0.031",
-       x="IMD deprivation decile", y="Cumulative admissions per 1,000 population",
-       caption=sc_caption) +
+       x="IMD deprivation decile", y="Cumulative admissions per 1,000 population") +
   theme_pub + theme(legend.position="top")
 
 ggsave("output/plots/school_closure/17_fig2_admission_reduction.png",
@@ -377,15 +427,14 @@ p3 <- decile_sc_summary %>%
   ggplot(aes(x=imd_decile, y=adm_pct_red_mean)) +
   geom_col(fill="#d73027", alpha=0.85, width=0.65) +
   geom_text(aes(label=paste0(adm_pct_red_mean,"%")),
-            vjust=-0.4, size=3.2, colour="#333333") +
+            vjust=-0.4, size=5.5, colour="#333333") +
   scale_x_continuous(breaks=1:10,
                      labels=c("1\n(most\ndeprived)",2:9,"10\n(least\ndeprived)")) +
   scale_y_continuous(expand=expansion(mult=c(0,0.12)),
                      labels=function(x) paste0(x,"%")) +
   labs(title="Reduction in hospital admissions from school closure by IMD decile",
        subtitle="Mean % reduction across age groups \u2014 \u03b2 fixed at 0.031",
-       x="IMD deprivation decile", y="Reduction in cumulative admissions (%)",
-       caption=sc_caption) +
+       x="IMD deprivation decile", y="Reduction in cumulative admissions (%)") +
   theme_pub
 
 ggsave("output/plots/school_closure/17_fig3_pct_reduction_by_decile.png",
@@ -408,8 +457,7 @@ p4 <- ggplot(age_sc_summary, aes(x=adm_pct_red_mean,
                      labels=function(x) paste0(x,"%")) +
   labs(title="School closure: reduction in admissions by age group",
        subtitle="National average across all IMD deciles \u2014 \u03b2 fixed at 0.031",
-       x="Reduction in cumulative admissions (%)", y="Age group",
-       caption=sc_caption) +
+       x="Reduction in cumulative admissions (%)", y="Age group") +
   theme_pub +
   theme(panel.grid.major.y=element_blank(),
         panel.grid.major.x=element_line(colour="#eeeeee"))
@@ -433,7 +481,7 @@ p5_facet <- region_sc_compare %>%
          region_short=str_remove(itl1_name," \\(England\\)")) %>%
   ggplot(aes(x=factor(lad_imd_decile), y=adm_per1000,
              colour=scenario, group=scenario)) +
-  geom_line(linewidth=0.9, alpha=0.85) + geom_point(size=1.5) +
+  geom_line(linewidth=0.9, alpha=0.85) + geom_point(size=2.0) +
   facet_wrap(~ region_short, nrow=3) +
   scale_colour_manual(values=c("Baseline"="steelblue","Schools closed"="#d73027"),
                       name=NULL) +
@@ -441,9 +489,9 @@ p5_facet <- region_sc_compare %>%
   labs(title="School closure effect on admissions by ITL1 region and IMD decile",
        subtitle="Blue = baseline, red = schools closed \u2014 \u03b2 fixed at 0.031",
        x="IMD deprivation decile (1 = most deprived)",
-       y="Cumulative admissions per 1,000", caption=sc_caption) +
+       y="Cumulative admissions per 1,000") +
   theme_pub +
-  theme(strip.text=element_text(face="bold", size=8.5), legend.position="top")
+  theme(strip.text=element_text(face="bold", size=16), legend.position="top")
 
 ggsave("output/plots/school_closure/17_fig5_region_decile_facet.png",
        p5_facet, width=16, height=10, dpi=200)
@@ -469,13 +517,12 @@ p6 <- ggplot(region_avoided,
                  y=total_avoided, fill=itl1_name)) +
   geom_col(width=0.65, alpha=0.9) +
   geom_text(aes(label=paste0(round(pct_red,1),"% reduction")),
-            vjust=-0.4, size=2.8, colour="#333333") +
+            vjust=-0.4, size=5.5, colour="#333333") +
   scale_fill_manual(values=region_colours, guide="none") +
   scale_y_continuous(expand=expansion(mult=c(0,0.12)), labels=comma) +
   labs(title="Avoided hospital admissions from school closure by ITL1 region",
        subtitle="Absolute count and % reduction \u2014 \u03b2 fixed at 0.031",
-       x="ITL1 Region", y="Avoided admissions (absolute count)",
-       caption=sc_caption) +
+       x="ITL1 Region", y="Avoided admissions (absolute count)") +
   theme_pub + theme(axis.text.x=element_text(angle=28, hjust=1, size=9))
 
 ggsave("output/plots/school_closure/17_fig6_region_avoided.png",
